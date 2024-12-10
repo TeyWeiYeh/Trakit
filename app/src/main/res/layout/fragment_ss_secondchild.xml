@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".splashscreen.SSSecondChildFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/iv_piggybank2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="35dp"
+            android:layout_marginTop="162dp"
+            android:layout_marginEnd="35dp"
+            android:layout_marginBottom="19dp"
+            android:src="@drawable/piggy_bank"
+            app:layout_constraintBottom_toTopOf="@+id/tvSummary2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvSummary2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="44dp"
+            android:fontFamily="@font/titan_one"
+            android:text="Make Budgeting Easy"
+            android:textColor="#021239"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/tvDescription2"
+            app:layout_constraintStart_toStartOf="@+id/tvDescription2"
+            app:layout_constraintTop_toBottomOf="@+id/iv_piggybank2" />
+
+        <TextView
+            android:id="@+id/tvDescription2"
+            android:layout_width="370dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="487dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="54dp"
+            android:fontFamily="@font/inter"
+            android:gravity="center"
+            android:text="No more confusing spreadsheets. Simplify your financial planning with ease"
+            android:textColor="#767676"
+            app:layout_constraintBottom_toTopOf="@+id/ivPagination2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/ivPagination2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:src="@drawable/ss_pagination2"
+            app:layout_constraintBottom_toTopOf="@+id/btnContinue2"
+            app:layout_constraintEnd_toEndOf="@+id/btnContinue2"
+            app:layout_constraintStart_toStartOf="@+id/btnContinue2"
+            app:layout_constraintTop_toBottomOf="@+id/tvDescription2" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnContinue2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="86dp"
+            android:backgroundTint="#021239"
+            android:paddingHorizontal="100dp"
+            android:text="Continue"
+            app:cornerRadius="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ivPagination2" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>
