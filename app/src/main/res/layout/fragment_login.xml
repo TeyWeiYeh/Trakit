@@ -74,5 +74,13 @@
                 android:inputType="textPassword"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <Button
+            android:id="@+id/button"
+            android:layout_width="296dp"
+            android:layout_height="51dp"
+            android:text="Button"
+            tools:layout_editor_absoluteX="46dp"
+            tools:layout_editor_absoluteY="474dp" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>
