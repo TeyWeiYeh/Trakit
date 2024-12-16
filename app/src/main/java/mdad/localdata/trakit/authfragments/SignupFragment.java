@@ -2,12 +2,33 @@ package mdad.localdata.trakit.authfragments;
 
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.android.material.textfield.TextInputLayout;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import mdad.localdata.trakit.MainActivity;
 import mdad.localdata.trakit.R;
 
 /**
@@ -62,5 +83,124 @@ public class SignupFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_signup, container, false);
+    }
+
+    EditText etSignupEmail, etSignupUsername, etSignupPassword, etSignupSecondaryPassword;
+    Button btnSignup;
+    String email, username, password, confpassword;
+    private static String url_signup = MainActivity.ipBaseUrl + "/signup.php";
+    public void onViewCreated(View view, Bundle savedInstanceState){
+        TextInputLayout passwordLayout = view.findViewById(R.id.filledTextFieldPassword);
+        TextInputLayout confPasswordLayout = view.findViewById(R.id.filledTextFieldSecondaryPassword);
+        etSignupEmail = (EditText) view.findViewById(R.id.etSignupEmail);
+        etSignupUsername = (EditText) view.findViewById(R.id.etSignupUsername);
+        etSignupPassword = (EditText) view.findViewById(R.id.etSignupPassword);
+        etSignupSecondaryPassword = (EditText) view.findViewById(R.id.etSignupConfirmPassword);
+        btnSignup = (Button) view.findViewById(R.id.btnSignup);
+        password = etSignupPassword.getText().toString();
+        confpassword = etSignupSecondaryPassword.getText().toString();
+        etSignupSecondaryPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                boolean result = matchPassword(etSignupPassword.getText().toString(), etSignupSecondaryPassword.getText().toString());
+                if (result) {
+                    confPasswordLayout.setError(null);
+                } else {
+                    confPasswordLayout.setError(getString(R.string.error_password_not_match));
+                }
+            }
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+        etSignupPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                boolean result = matchPassword(password, confpassword);
+                if (result){
+                    passwordLayout.setError(null);
+                }
+                else{
+                    passwordLayout.setError(getString(R.string.error_password_not_match));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+        btnSignup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String trimEmail = etSignupEmail.getText().toString().trim();
+                String trimUsername = etSignupUsername.getText().toString().trim();
+                String trimPassword = etSignupPassword.getText().toString().trim();
+                if (!trimEmail.isEmpty() && !trimUsername.isEmpty() && !trimPassword.isEmpty()){
+                    Map<String, String> params_signup = new HashMap<String, String>();
+                    params_signup.put("email", trimEmail);
+                    params_signup.put("username", trimUsername);
+                    params_signup.put("password", trimPassword);
+                    Signup(url_signup, params_signup);
+                } else {
+                    Toast.makeText(requireContext().getApplicationContext(), "Please fill up all fields", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private boolean matchPassword(String password, String confPassword){
+        return password.equals(confPassword);
+    }
+
+    public void Signup(String url, Map params ){
+        RequestQueue requestQueue = Volley.newRequestQueue(getContext());
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    String message = jsonObject.getString("message");
+                    String token = jsonObject.getString("token");
+
+                    if (message.equals("User successfully created")) {
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                        storeToken(token);
+                        // Navigate to another activity or perform actions on successful login
+                    } else if (message.equals("User already exists")){
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getActivity(), "Response error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Nullable
+            @Override
+            // to send product info stored in HashMap params_create to server via HTTP Post
+            protected Map<String, String> getParams() {
+                return params;
+            }
+        };
+        requestQueue.add(stringRequest);
+    }
+    public void storeToken(String token) {
+        MainActivity.getSharedPreferences().edit().putString("token", token).apply();
     }
 }

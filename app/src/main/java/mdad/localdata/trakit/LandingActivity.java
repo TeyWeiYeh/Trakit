@@ -1,7 +1,5 @@
 package mdad.localdata.trakit;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -15,26 +13,22 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
-public class MainActivity extends AppCompatActivity {
-    //handles the navigation and swiping gestures of the fragments
+public class LandingActivity extends AppCompatActivity {
     public static ViewPager2 viewPager;
     private FragmentStateAdapter pagerAdapter;
     private static final int NUM_PAGES = 2;
-    public static String ipBaseUrl = "http://192.168.18.18/project/api";
-    private static SharedPreferences sharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_landing);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        sharedPreferences = getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         viewPager = (ViewPager2) findViewById(R.id.mypager);
-        pagerAdapter = new MyPagerAdapter(this);
+        pagerAdapter = new LandingActivity.MyPagerAdapter(this);
         viewPager.setAdapter(pagerAdapter);
         new Handler().postDelayed(() -> viewPager.setCurrentItem(1, true), 1500);
     }
@@ -47,10 +41,10 @@ public class MainActivity extends AppCompatActivity {
         public Fragment createFragment(int position) {
             switch (position) {
                 case 0: {
-                return LogoFragment.newInstance("fragment logo",null);
+                    return LogoFragment.newInstance("fragment logo",null);
                 }
                 case 1: {
-                return SSFragment.newInstance("fragment ss", null);
+                    return SSFragment.newInstance("fragment ss", null);
                 }
                 default:
                     return new Fragment();
@@ -61,8 +55,5 @@ public class MainActivity extends AppCompatActivity {
         public int getItemCount() {
             return NUM_PAGES;
         }
-    }
-    public static SharedPreferences getSharedPreferences() {
-        return sharedPreferences;
     }
 }

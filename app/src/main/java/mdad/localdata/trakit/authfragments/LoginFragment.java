@@ -2,12 +2,33 @@ package mdad.localdata.trakit.authfragments;
 
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import mdad.localdata.trakit.MainActivity;
 import mdad.localdata.trakit.R;
 
 /**
@@ -62,5 +83,98 @@ public class LoginFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_login, container, false);
+    }
+
+    Button btnLogin, btnGetToken;
+    TextView tvToken, tvSignup;
+    EditText etEmail, etPassword;
+    private RequestQueue mRequestQueue;
+    private StringRequest mStringRequest;
+    private static String url_login = MainActivity.ipBaseUrl + "/login.php";
+    public void onViewCreated(View view, Bundle savedInstanceState){
+
+        btnLogin = (Button) view.findViewById(R.id.btnLogin);
+        etEmail = (EditText) view.findViewById(R.id.etEmail);
+        etPassword = (EditText) view.findViewById(R.id.etPassword);
+        tvSignup = (TextView) view.findViewById(R.id.tvToSignup);
+        //btnGetToken = (Button) view.findViewById(R.id.btnGetToken);
+        //tvToken = (TextView) view.findViewById(R.id.tvToken);
+        btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String email = etEmail.getText().toString();
+                String password = etPassword.getText().toString();
+                if (!email.isEmpty() && !password.isEmpty()) {
+                    Map<String,String> params_login = new HashMap<String,String>();
+                    params_login.put("username", email);
+                    params_login.put("password", password);
+                    Login(url_login,params_login);
+                } else {
+                    Toast.makeText(getActivity(), "Please fill up all fields", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        tvSignup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fragmentManager = getParentFragmentManager(); // Use getActivity().getSupportFragmentManager() if not in parent-child hierarchy
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.replace(R.id.fragment_container, new SignupFragment());
+                transaction.addToBackStack(null); // Add to backstack to enable "Back" navigation
+                transaction.commit();
+            }
+        });
+//        btnGetToken.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                tvToken.setText(MainActivity.getSharedPreferences().getString("token", null)); // Default value is null
+//            }
+//        });
+    }
+
+    public void Login(String url, Map params){
+        RequestQueue requestQueue = Volley.newRequestQueue(getContext());
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            String message = jsonObject.getString("message");
+                            String token = jsonObject.getString("token");
+
+                            if (message.equals("Login successful")) {
+                                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                                storeToken(token);
+                                // Navigate to another activity or perform actions on successful login
+                            } else if (message.equals("Invalid credentials")){
+                                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(getActivity(), "Response error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
+                    }
+                }){
+            @Nullable
+            @Override
+            // to send product info stored in HashMap params_create to server via HTTP Post
+            protected Map<String, String> getParams() {
+                return params;
+            }
+        };
+        requestQueue.add(stringRequest);
+    }
+
+    public void storeToken(String token) {
+        MainActivity.getSharedPreferences().edit().putString("token", token).apply();
     }
 }
