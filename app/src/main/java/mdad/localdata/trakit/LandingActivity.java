@@ -1,5 +1,8 @@
 package mdad.localdata.trakit;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -27,10 +30,17 @@ public class LandingActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        SharedPreferences sharedPreferences = getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+        String token = sharedPreferences.getString("token", null);
+        if (token != null) {
+            // Token exists, navigate to MainActivity
+            Intent i = new Intent(this, MainActivity.class);
+            startActivity(i);
+            finish(); // Close the landing activity
+        }
         viewPager = (ViewPager2) findViewById(R.id.mypager);
         pagerAdapter = new LandingActivity.MyPagerAdapter(this);
         viewPager.setAdapter(pagerAdapter);
-        new Handler().postDelayed(() -> viewPager.setCurrentItem(1, true), 1500);
     }
     private class MyPagerAdapter extends FragmentStateAdapter {
         public MyPagerAdapter(FragmentActivity fa) {
@@ -41,10 +51,11 @@ public class LandingActivity extends AppCompatActivity {
         public Fragment createFragment(int position) {
             switch (position) {
                 case 0: {
-                    return LogoFragment.newInstance("fragment logo",null);
+                    //return LogoFragment.newInstance("fragment logo",null);
+                    return SSFragment.newInstance("fragment ss", null);
                 }
                 case 1: {
-                    return SSFragment.newInstance("fragment ss", null);
+                    //return LogoFragment.newInstance("fragment logo",null);
                 }
                 default:
                     return new Fragment();

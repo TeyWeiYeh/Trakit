@@ -1,5 +1,7 @@
 package mdad.localdata.trakit;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -19,7 +21,7 @@ import mdad.localdata.trakit.authfragments.SignupFragment;
 
 public class AuthActivity extends AppCompatActivity {
     private FragmentStateAdapter pagerAdapter;
-    //number of pages inside the fragment
+    private static SharedPreferences sharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,9 +32,13 @@ public class AuthActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        sharedPreferences = getApplicationContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fragment_container, new LoginFragment());
         transaction.commit();
+    }
+    public static SharedPreferences getSharedPreferences() {
+        return sharedPreferences;
     }
 }

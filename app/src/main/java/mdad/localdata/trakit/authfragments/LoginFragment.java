@@ -1,5 +1,8 @@
 package mdad.localdata.trakit.authfragments;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -28,6 +31,8 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import data.network.VolleySingleton;
+import mdad.localdata.trakit.AuthActivity;
 import mdad.localdata.trakit.MainActivity;
 import mdad.localdata.trakit.R;
 
@@ -97,8 +102,6 @@ public class LoginFragment extends Fragment {
         etEmail = (EditText) view.findViewById(R.id.etEmail);
         etPassword = (EditText) view.findViewById(R.id.etPassword);
         tvSignup = (TextView) view.findViewById(R.id.tvToSignup);
-        //btnGetToken = (Button) view.findViewById(R.id.btnGetToken);
-        //tvToken = (TextView) view.findViewById(R.id.tvToken);
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -106,11 +109,11 @@ public class LoginFragment extends Fragment {
                 String password = etPassword.getText().toString();
                 if (!email.isEmpty() && !password.isEmpty()) {
                     Map<String,String> params_login = new HashMap<String,String>();
-                    params_login.put("username", email);
+                    params_login.put("email", email);
                     params_login.put("password", password);
                     Login(url_login,params_login);
                 } else {
-                    Toast.makeText(getActivity(), "Please fill up all fields", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Please fill up all fields", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -124,16 +127,10 @@ public class LoginFragment extends Fragment {
                 transaction.commit();
             }
         });
-//        btnGetToken.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                tvToken.setText(MainActivity.getSharedPreferences().getString("token", null)); // Default value is null
-//            }
-//        });
     }
 
     public void Login(String url, Map params){
-        RequestQueue requestQueue = Volley.newRequestQueue(getContext());
+        RequestQueue requestQueue = VolleySingleton.getInstance(getContext()).getRequestQueue();
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>() {
                     @Override
@@ -144,17 +141,19 @@ public class LoginFragment extends Fragment {
                             String token = jsonObject.getString("token");
 
                             if (message.equals("Login successful")) {
-                                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                                 storeToken(token);
+                                Intent i = new Intent(getContext(), MainActivity.class);
+                                startActivity(i);
                                 // Navigate to another activity or perform actions on successful login
                             } else if (message.equals("Invalid credentials")){
-                                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                             } else {
-                                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Toast.makeText(getActivity(), "Response error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "Response error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 },
@@ -171,10 +170,12 @@ public class LoginFragment extends Fragment {
                 return params;
             }
         };
-        requestQueue.add(stringRequest);
+        VolleySingleton.getInstance(getContext()).addToRequestQueue(stringRequest);
     }
 
     public void storeToken(String token) {
-        MainActivity.getSharedPreferences().edit().putString("token", token).apply();
+//        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+//        sharedPreferences.edit().putString("token", token).apply();
+        AuthActivity.getSharedPreferences().edit().putString("token", token).apply();
     }
 }

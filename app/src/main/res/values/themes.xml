@@ -4,6 +4,37 @@
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
         <item name="colorPrimary">@color/base</item>
+        <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflow</item>
+        <item name="bottomNavigationStyle">@style/Widget.MaterialComponents.BottomNavigationView</item>
+<!--        <item name="colorPrimaryDark">@color/base</item>-->
+<!--        <item name="colorAccent">@color/white</item>-->
+<!--        <item name="android:actionBarStyle">@style/CustomActionBar</item>-->
+    </style>
+
+    <style name="NoActionBar" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/base</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+    <!-- Custom ActionBar -->
+<!--    <style name="CustomActionBar" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">-->
+<!--        <item name="android:titleTextStyle">@style/CustomActionBarTitleText</item>-->
+<!--        <item name="android:background">@color/base</item>-->
+<!--    </style>-->
+
+    <!-- Title Text Style -->
+<!--    <style name="CustomActionBarTitleText" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">-->
+<!--        <item name="android:textColor">@color/white</item>-->
+<!--    </style>-->
+
+    <style name="MyActionButtonOverflow" parent="@style/Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:tint">@color/white</item>
+    </style>
+
+    <style name="Widget.MaterialComponents.BottomNavigationView" parent="Widget.Design.BottomNavigationView">
+        <item name="android:gravity">center</item>
+        <item name="android:lines">3</item>
+        <item name="android:paddingBottom">0dp</item>
     </style>
 
     <style name="Theme.Trakit" parent="Base.Theme.Trakit" />

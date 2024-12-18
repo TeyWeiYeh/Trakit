@@ -1,5 +1,7 @@
 package mdad.localdata.trakit.authfragments;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -19,7 +21,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputLayout;
 
 import org.json.JSONException;
@@ -28,8 +29,11 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import data.network.VolleySingleton;
+import mdad.localdata.trakit.AuthActivity;
 import mdad.localdata.trakit.MainActivity;
 import mdad.localdata.trakit.R;
+import android.content.SharedPreferences;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -162,7 +166,7 @@ public class SignupFragment extends Fragment {
     }
 
     public void Signup(String url, Map params ){
-        RequestQueue requestQueue = Volley.newRequestQueue(getContext());
+        RequestQueue requestQueue = VolleySingleton.getInstance(getContext()).getRequestQueue();
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -198,9 +202,11 @@ public class SignupFragment extends Fragment {
                 return params;
             }
         };
-        requestQueue.add(stringRequest);
+        VolleySingleton.getInstance(getContext()).addToRequestQueue(stringRequest);
     }
     public void storeToken(String token) {
-        MainActivity.getSharedPreferences().edit().putString("token", token).apply();
+//        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+//        sharedPreferences.edit().putString("token", token).apply();
+        AuthActivity.getSharedPreferences().edit().putString("token", token).apply();
     }
 }
