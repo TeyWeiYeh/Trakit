@@ -5,4 +5,6 @@
     <color name="base">#021239</color>
     <color name="tint_color_deselected">#808080</color>
     <color name="light_gray">#E0E5F0</color>
+    <color name="delete">#FF8282</color>
+    <color name="save">#3FFFAF</color>
 </resources>

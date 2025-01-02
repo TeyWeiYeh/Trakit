@@ -3,15 +3,26 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="error_password_not_match">Password does not match</string>
+
+    <!-- top nav bar -->
     <string name="profile">Profile</string>
     <string name="logout">Logout</string>
+
+    <!-- bottom nav bar -->
     <string name="home">Home</string>
     <string name="chart">Chart</string>
     <string name="add">Create</string>
     <string name="trans">Trans</string>
     <string name="cat">Cat</string>
-    <string name="more">More</string>
 
-<!--    Title for fragments-->
-    <string name="catList">Category List</string>
+
+    <string name="more">More</string>
+    <string name="create_new_cat">New</string>
+
+    <!-- title for fragments -->
+    <string name="catList_top_nav_bar">Categories</string>
+    <string name="home_top_navbar">Home</string>
+    <string name="chart_top_navbar">Charts</string>
+    <string name="add_top_navbar">New transaction</string>
+    <string name="trans_top_navbar">Transactions</string>
 </resources>

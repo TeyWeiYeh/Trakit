@@ -69,7 +69,7 @@
             app:endIconDrawable="@drawable/profile"
             app:endIconMode="custom"
             app:errorEnabled="true"
-            app:layout_constraintBottom_toTopOf="@+id/filledTextFieldPassword"
+            app:layout_constraintBottom_toTopOf="@+id/filledTextFieldCat"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/emailFilledTextField">
@@ -81,7 +81,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/filledTextFieldPassword"
+            android:id="@+id/filledTextFieldCat"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="323dp"
             android:layout_height="wrap_content"
@@ -111,7 +111,7 @@
             app:errorEnabled="true"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/filledTextFieldPassword">
+            app:layout_constraintTop_toBottomOf="@+id/filledTextFieldCat">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etSignupConfirmPassword"

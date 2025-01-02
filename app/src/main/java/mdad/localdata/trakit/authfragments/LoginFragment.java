@@ -23,7 +23,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -100,7 +99,7 @@ public class LoginFragment extends Fragment {
 
         btnLogin = (Button) view.findViewById(R.id.btnLogin);
         etEmail = (EditText) view.findViewById(R.id.etEmail);
-        etPassword = (EditText) view.findViewById(R.id.etPassword);
+        etPassword = (EditText) view.findViewById(R.id.etCat);
         tvSignup = (TextView) view.findViewById(R.id.tvToSignup);
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -174,8 +173,7 @@ public class LoginFragment extends Fragment {
     }
 
     public void storeToken(String token) {
-//        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
-//        sharedPreferences.edit().putString("token", token).apply();
-        AuthActivity.getSharedPreferences().edit().putString("token", token).apply();
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString("token", token).apply();
     }
 }

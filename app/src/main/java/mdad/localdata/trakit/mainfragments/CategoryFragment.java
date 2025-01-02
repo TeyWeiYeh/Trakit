@@ -3,20 +3,31 @@ package mdad.localdata.trakit.mainfragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
+import androidx.annotation.ColorInt;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -34,9 +45,13 @@ import org.json.JSONObject;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import data.network.ICallback;
 import data.network.VolleySingleton;
+import data.network.controller.CategoryController;
+import domain.Category;
 import mdad.localdata.trakit.AuthActivity;
 import mdad.localdata.trakit.MainActivity;
 import mdad.localdata.trakit.R;
@@ -101,26 +116,32 @@ public class CategoryFragment extends Fragment {
     String url = MainActivity.ipBaseUrl + "/category/create.php?type=";
     String token;
     ListView category_list;
-    String type = "Expense";
+    String type = Category.Type.EXPENSE.toString();
+    EditText etCat;
+    TextView cid;
+    Button btnSave, btnDelete;
+    //Button btnEditCat;
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
         SharedPreferences sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         token = sharedPreferences.getString("token", null);
         topAppBar = view.findViewById(R.id.topAppBar);
         FragmentManager fm = getParentFragmentManager();
+
         topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 int itemId = menuItem.getItemId();
-
                 if (itemId == R.id.action_profile) {
                     // Navigate to profile
                     Toast.makeText(requireContext().getApplicationContext(), "Profile clicked", Toast.LENGTH_LONG).show();
                     return true;
                 } else if (itemId == R.id.action_logout) {
                     // Logout logic
-                    sharedPreferences.edit().putString("token","").apply();
+                    sharedPreferences.edit().putString("token",null).apply();
                     Intent i = new Intent(getContext(), AuthActivity.class);
+                    //clears the stack
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(i);
                     return true;
                 }
@@ -132,71 +153,152 @@ public class CategoryFragment extends Fragment {
         RadioButton incomeButton = view.findViewById(R.id.incomeButton);
         category_list = view.findViewById(R.id.category_list);
         radioGroup.check(R.id.expenseButton);
-        GetAllCategory(url, type);
+        catList(type);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.expenseButton) {
                 expenseButton.setBackgroundResource(R.drawable.rounded_left_selected);
                 incomeButton.setBackgroundResource(R.drawable.rounded_right_unselected);
-                System.out.println(token);
-                type="Expense";
-                GetAllCategory(url, type);
+                type = Category.Type.EXPENSE.toString();
+                System.out.println("Token" + token);
             } else if (checkedId == R.id.incomeButton) {
                 incomeButton.setBackgroundResource(R.drawable.rounded_right_selected);
                 expenseButton.setBackgroundResource(R.drawable.rounded_left_unselected);
-                type = "Income";
-                GetAllCategory(url, type);
+                type = Category.Type.INCOME.toString();
+                System.out.println("Token" + token);
             }
+            catList(type);
         });
     }
 
-    public void GetAllCategory(String url, String type){
+    public void catList (String type){
+        CategoryController categoryController = new CategoryController(getContext());
         ArrayList<HashMap<String,String>> arrayList=new ArrayList<>();
-        RequestQueue requestQueue = VolleySingleton.getInstance(requireContext()).getRequestQueue();
-        url = url + type;
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+        categoryController.getAllCategories(type, new ICallback(){
             @Override
-            public void onResponse(String response) {
+            public void onSuccess(Object result) {
+                JSONArray dataArray = (JSONArray) result;
                 try{
-                    JSONObject jsonObject = new JSONObject(response);
-                    String data = jsonObject.getString("data");
-                    JSONArray dataArray = new JSONArray(data);
-                    //Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();
-                    System.out.println(dataArray);
                     for (int i=0; i<dataArray.length();i++){
                         JSONObject item = dataArray.getJSONObject(i);
                         String id = item.getString("id");
                         String name = item.getString("name");
                         String type = item.getString("type");
                         HashMap<String,String> hashMap=new HashMap<>();
+                        hashMap.put("id", id);
                         hashMap.put("name",name);
                         hashMap.put("type",type);
                         arrayList.add(hashMap);
                     }
-                    String[] from={"name","type"};//string array
-                    int[] to={R.id.tvName,R.id.tvType};//int array of views id's
-                    SimpleAdapter simpleAdapter=new SimpleAdapter(getContext(),arrayList,R.layout.list_view_items,from,to);
+                    String[] from={"id","name","type"};//string array
+                    int[] to={R.id.catId, R.id.tvName,R.id.tvType};//int array of views id's
+                    SimpleAdapter simpleAdapter=new SimpleAdapter(getContext(),arrayList,R.layout.list_view_items,from,to){
+                        @Override
+                        public View getView(int position, View convertView, ViewGroup parent) {
+                            View view = super.getView(position, convertView, parent);
+                            Button btnEditCat = view.findViewById(R.id.btnEditCat);
+                            btnEditCat.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    // Create and show the popup window
+                                    LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                                    View popupView = inflater.inflate(R.layout.popup, null);
+                                    etCat = popupView.findViewById(R.id.etCat);
+                                    btnSave = popupView.findViewById(R.id.btnSave);
+                                    btnDelete = popupView.findViewById(R.id.btnDelete);
+                                    String catId = ((TextView) view.findViewById(R.id.catId)).getText().toString();
+                                    Category.Type catType = ((TextView) view.findViewById(R.id.tvType)).getText().toString().equals("Expense") ? Category.Type.EXPENSE : Category.Type.INCOME;
+                                    cid = popupView.findViewById(R.id.cid);
+                                    cid.setText(catId);
+                                    int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+                                    int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                                    boolean focusable = true;
+                                    PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+                                    popupWindow.showAtLocation(v, Gravity.CENTER, 50, 50);
+                                    popupWindow.setBackgroundDrawable(new ColorDrawable(Color.GRAY));
+                                    popupWindow.setElevation(10); // Add shadow if supported
+                                    dimBehind(popupWindow);
+                                    btnSave.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            Category newCat = new Category(cid.getText().toString(), etCat.getText().toString(),catType);
+                                            System.out.println("Update Cat: " + newCat.id + " " + newCat.name + " " + catType);
+                                            categoryController.updateCategory(catId, newCat, new ICallback(){
+                                                @Override
+                                                public void onSuccess(Object result) {
+                                                    popupWindow.dismiss();
+                                                    catList(type);
+                                                    Toast.makeText(getContext(), result.toString(), Toast.LENGTH_LONG).show();
+                                                }
+                                                @Override
+                                                public void onError(String error) {
+                                                    Toast.makeText(getContext(), "Error updating category: " + error, Toast.LENGTH_LONG).show();
+                                                }
+                                                @Override
+                                                public void onAuthFailure(String authFailure){
+                                                    Toast.makeText(getContext(), authFailure, Toast.LENGTH_LONG).show();
+                                                    // Redirect the user to the login screen
+                                                    Intent intent = new Intent(getContext(), AuthActivity.class);
+                                                    startActivity(intent);
+                                                }
+                                            });
+                                        }
+                                    });
+                                    btnDelete.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            categoryController.deleteCategory(cid.getText().toString(), new ICallback(){
+                                                @Override
+                                                public void onSuccess(Object result){
+                                                    popupWindow.dismiss();
+                                                    catList(type);
+                                                    Toast.makeText(getContext(), result.toString(), Toast.LENGTH_LONG).show();
+                                                }
+                                                @Override
+                                                public void onError(String error){
+                                                    Toast.makeText(getContext(), "Error updating category: " + error, Toast.LENGTH_LONG).show();
+                                                }
+                                                @Override
+                                                public void onAuthFailure(String authFailure){
+                                                    Toast.makeText(getContext(), authFailure, Toast.LENGTH_LONG).show();
+                                                    // Redirect the user to the login screen
+                                                    Intent intent = new Intent(getContext(), AuthActivity.class);
+                                                    startActivity(intent);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                            return view;
+                        }
+                    };
                     category_list.setAdapter(simpleAdapter);
-                } catch (Exception e) {
+                } catch (JSONException e){
                     e.printStackTrace();
-                    Toast.makeText(getContext(), "Response error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Json Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
-        }, new Response.ErrorListener() {
             @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
+            public void onError(String error) {
+                // Handle error
+                Toast.makeText(getContext(), "API error: " + error, Toast.LENGTH_SHORT).show();
             }
-        }) {
             @Override
-            public Map<String, String> getHeaders() {
-                // Add the Authorization header here
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                headers.put("Authorization", "Bearer " + token); // Add the Bearer token
-                headers.put("type","Expense");
-                return headers;
+            public void onAuthFailure(String authFailure){
+                Toast.makeText(getContext(), authFailure, Toast.LENGTH_LONG).show();
+                // Redirect the user to the login screen
+                Intent intent = new Intent(getContext(), AuthActivity.class);
+                startActivity(intent);
             }
-        };
-        VolleySingleton.getInstance(getContext()).addToRequestQueue(stringRequest);
+        });
+    }
+    private void dimBehind(PopupWindow popupWindow) {
+        View container = popupWindow.getContentView().getRootView();
+        Context context = popupWindow.getContentView().getContext();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        WindowManager.LayoutParams p = (WindowManager.LayoutParams) container.getLayoutParams();
+        p.flags |= WindowManager.LayoutParams.FLAG_DIM_BEHIND;
+        p.dimAmount = 0.5f; // Adjust dim amount (0.0 - no dim, 1.0 - fully dimmed)
+        wm.updateViewLayout(container, p);
     }
 }

@@ -1,7 +1,5 @@
 package mdad.localdata.trakit.authfragments;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -33,7 +31,6 @@ import data.network.VolleySingleton;
 import mdad.localdata.trakit.AuthActivity;
 import mdad.localdata.trakit.MainActivity;
 import mdad.localdata.trakit.R;
-import android.content.SharedPreferences;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -94,7 +91,7 @@ public class SignupFragment extends Fragment {
     String email, username, password, confpassword;
     private static String url_signup = MainActivity.ipBaseUrl + "/signup.php";
     public void onViewCreated(View view, Bundle savedInstanceState){
-        TextInputLayout passwordLayout = view.findViewById(R.id.filledTextFieldPassword);
+        TextInputLayout passwordLayout = view.findViewById(R.id.filledTextFieldCat);
         TextInputLayout confPasswordLayout = view.findViewById(R.id.filledTextFieldSecondaryPassword);
         etSignupEmail = (EditText) view.findViewById(R.id.etSignupEmail);
         etSignupUsername = (EditText) view.findViewById(R.id.etSignupUsername);
@@ -180,7 +177,7 @@ public class SignupFragment extends Fragment {
                         storeToken(token);
                         // Navigate to another activity or perform actions on successful login
                     } else if (message.equals("User already exists")){
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "User already exists", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
                     }
@@ -192,7 +189,20 @@ public class SignupFragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
+                if (error.networkResponse != null) {
+                    int statusCode = error.networkResponse.statusCode;
+                    String errorMessage = new String(error.networkResponse.data);
+
+                    if (statusCode == 409) {
+                        // Handle "User already exists" error
+                        Toast.makeText(getActivity(), "User already exists. Please try logging in.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), "Error: " + statusCode + " - " + errorMessage, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Network error (no response)
+                    Toast.makeText(getActivity(), "Network error: " + error.toString(), Toast.LENGTH_SHORT).show();
+                }
             }
         }){
             @Nullable

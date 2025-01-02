@@ -20,7 +20,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:menu="@menu/menu_main"
-            app:title="@string/catList"
+            app:title="@string/catList_top_nav_bar"
             app:titleTextColor="@color/white" />
 
         <!-- Radio Group for Segmented Buttons -->
@@ -71,7 +71,13 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:layout_marginTop="16dp"
-            android:text="Button"
+            android:background="#00000000"
+            android:gravity="center"
+            android:paddingLeft="0dp"
+            android:text="@string/create_new_cat"
+            android:textColor="@color/base"
+            app:icon="@drawable/add"
+            app:iconTint="#021239"
             app:layout_constraintBottom_toTopOf="@+id/category_list"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
