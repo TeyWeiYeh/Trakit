@@ -7,4 +7,6 @@
     <color name="light_gray">#E0E5F0</color>
     <color name="delete">#FF8282</color>
     <color name="save">#3FFFAF</color>
+    <color name="income">#1B5E20</color>
+    <color name="expense">#B71C1C</color>
 </resources>

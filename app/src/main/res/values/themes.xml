@@ -6,15 +6,23 @@
         <item name="colorPrimary">@color/base</item>
         <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflow</item>
         <item name="bottomNavigationStyle">@style/Widget.MaterialComponents.BottomNavigationView</item>
-<!--        <item name="colorPrimaryDark">@color/base</item>-->
-<!--        <item name="colorAccent">@color/white</item>-->
-<!--        <item name="android:actionBarStyle">@style/CustomActionBar</item>-->
     </style>
 
     <style name="NoActionBar" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/base</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="CircleShape" parent="Widget.MaterialComponents.ShapeableImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="SpinnerTextStyle">
+        <item name="android:textColor">@color/base</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:gravity">center</item>
     </style>
     <!-- Custom ActionBar -->
 <!--    <style name="CustomActionBar" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">-->

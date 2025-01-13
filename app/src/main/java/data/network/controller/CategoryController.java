@@ -29,28 +29,31 @@ public class CategoryController {
         apiController.getAllCategory(type, response -> {
             try {
                 JSONObject jsonObject = new JSONObject(response);
-//                String data = jsonObject.getString("data");
+                //String data = jsonObject.getString("data");
                 JSONArray dataArray = new JSONArray(jsonObject.optString("data"));
                 callback.onSuccess(dataArray);
             } catch (JSONException e){
                 e.printStackTrace();
-                Toast.makeText(context, "Response error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                callback.onError("JSON error: " + e.getMessage());
             }
         }, error -> {
-            Toast.makeText(context, "Volley error: " + error.toString(), Toast.LENGTH_LONG).show();
+            if (error instanceof AuthFailureError)
+                // Notify the callback about the authentication failure
+                callback.onAuthFailure("Authentication failed. Please login again.");
+            else
+                callback.onError("Failed to retrieve categories" + error.toString());
         });
     }
 
-    public void createCategory(String token, Category category, ICallback callback){
-        apiController.createCategory(token, category, response-> {
+    public void createCategory(Category category, ICallback callback){
+        apiController.createCategory(category, response-> {
             callback.onSuccess("Category created successfully");
         }, error-> {
-            if (error instanceof AuthFailureError) {
+            if (error instanceof AuthFailureError)
                 // Notify the callback about the authentication failure
                 callback.onAuthFailure("Authentication failed. Please log in again.");
-            } else {
+            else
                 callback.onError("Failed to create category: " + error.getMessage());
-            }
         });
     }
 
@@ -58,8 +61,11 @@ public class CategoryController {
         apiController.updateCategory(id, category, response -> {
             callback.onSuccess("Category updated successfully");
         }, error -> {
-            callback.onError("Volley error: " + error.getMessage());
-            System.out.println(error.toString());
+            if (error instanceof AuthFailureError)
+                // Notify the callback about the authentication failure
+                callback.onAuthFailure("Authentication failed. Please log in again.");
+            else
+                callback.onError("Volley error: " + error.getMessage());
         });
     }
 

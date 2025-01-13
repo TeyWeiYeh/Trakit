@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Outer LinearLayout with horizontal orientation -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp">
+
+        <!-- First TextView (Income) -->
+        <TextView
+            android:id="@+id/tvTransType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/income_background"
+            android:paddingVertical="4dp"
+            android:paddingHorizontal="12dp"
+            android:text="Income"
+            android:textColor="#1B5E20" />
+
+        <!-- Space between Income and Date -->
+        <View
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"/>
+
+        <!-- Second TextView (Date) -->
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20/06/2025"
+            android:gravity="end"
+            android:paddingRight="28dp"
+            android:textColor="#82868f" />
+    </LinearLayout>
+
+    <!-- Inner Horizontal Layout for Transaction Category and Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp">
+
+        <!-- First vertical layout for Transaction Category and Title -->
+        <TextView
+            android:id="@+id/tvTransCat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Demo"
+            android:textColor="@color/base"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Space between the two vertical layouts -->
+        <View
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"/>
+
+        <!-- Second vertical layout for Button and Amount -->
+
+        <TextView
+            android:id="@+id/tvTransIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="-"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+            android:textColor="@color/base"/>
+
+        <TextView
+            android:id="@+id/tvAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:paddingVertical="0dp"
+            android:paddingRight="8dp"
+            android:text="$45.00"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/base"/>
+
+        <Button
+            android:id="@+id/btnView"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:backgroundTint="@android:color/transparent"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text=""
+            app:icon="@drawable/arrow_forward"
+            app:iconPadding="0dp"
+            app:iconSize="24dp"
+            app:iconTint="#021239" />
+
+    </LinearLayout>
+
+</LinearLayout>

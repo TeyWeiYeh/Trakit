@@ -36,7 +36,8 @@ import mdad.localdata.trakit.mainfragments.TransactionFragment;
 public class MainActivity extends AppCompatActivity {
     //handles the navigation and swiping gestures of the fragments
     private static final int NUM_PAGES = 2;
-    public static String ipBaseUrl = "http://192.168.18.18/project/api";
+    //172.30.33.55
+    public final static String ipBaseUrl = "http://192.168.18.18/project/api";
     BottomNavigationView bottomNavigationView;
     MaterialToolbar topAppBar;
 
@@ -61,26 +62,6 @@ public class MainActivity extends AppCompatActivity {
         transaction.commit();
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
-        //topAppBar = findViewById(R.id.topAppBar);
-//        topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
-//            @Override
-//            public boolean onMenuItemClick(MenuItem menuItem) {
-//                int itemId = menuItem.getItemId();
-//
-//                if (itemId == R.id.action_profile) {
-//                    // Navigate to profile
-//                    fm.beginTransaction()
-//                            .replace(R.id.main_fragment_container, categoryFragment)
-//                            .commit();
-//                    return true;
-//                } else if (itemId == R.id.action_logout) {
-//                    // Logout logic
-//                    return true;
-//                }
-//
-//                return false;
-//            }
-//        });
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
