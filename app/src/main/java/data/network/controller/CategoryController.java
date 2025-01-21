@@ -1,6 +1,7 @@
 package data.network.controller;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -32,6 +33,7 @@ public class CategoryController {
                 //String data = jsonObject.getString("data");
                 JSONArray dataArray = new JSONArray(jsonObject.optString("data"));
                 callback.onSuccess(dataArray);
+                Log.d("all cat resp", String.valueOf(dataArray));
             } catch (JSONException e){
                 e.printStackTrace();
                 callback.onError("JSON error: " + e.getMessage());
@@ -74,7 +76,6 @@ public class CategoryController {
             callback.onSuccess("Category deleted successfully");
         }, error -> {
             callback.onError("Failed to delete Category");
-            System.out.println(error.toString());
         });
     }
 

@@ -4,12 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".mainfragments.AddFragment">
+    tools:context=".transactionfragments.UpdateTransactionFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- Top App Bar -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
             android:layout_width="0dp"
@@ -22,6 +23,219 @@
             app:title="@string/add_top_navbar"
             app:titleTextColor="@color/white" />
 
+        <!-- Radio Group -->
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_margin="16dp"
+            android:background="@drawable/segmented_background"
+            android:orientation="horizontal"
+            android:padding="2dp"
+            app:layout_constraintTop_toBottomOf="@id/topAppBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <RadioButton
+                android:id="@+id/expenseButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/segmented_left_selected"
+                android:button="@null"
+                android:checked="true"
+                android:gravity="center"
+                android:text="@string/expense"
+                android:textColor="@drawable/color"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/incomeButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/segmented_right_unselected"
+                android:button="@null"
+                android:gravity="center"
+                android:text="@string/income"
+                android:textColor="@drawable/color"
+                android:textStyle="bold" />
+        </RadioGroup>
+
+        <!-- Content Layout -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/radioGroup">
+
+            <!-- Amount Section -->
+            <TextView
+                android:id="@+id/tvCreateAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/view_amt"
+                android:textColor="@color/base"
+                android:textStyle="bold" />
+
+            <!-- Horizontal Layout for Amount and Currency -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <EditText
+                    android:id="@+id/etCreateAmount"
+                    android:layout_width="0dp"
+                    android:layout_height="53dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/rounded_edittext_transparent"
+                    android:hint="0.00"
+                    android:enabled="true"
+                    android:inputType="numberDecimal"
+                    android:paddingHorizontal="8dp"
+                    android:textSize="32dp"
+                    android:textStyle="bold"
+                    android:textColor="@color/base"/>
+
+                <TextView
+                    android:id="@+id/tvCreateCurrency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:text="SGD"
+                    android:textColor="@color/base"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvCreateDesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Description"
+                android:textColor="@color/base"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etCreateDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext_transparent"
+                android:enabled="true"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:maxLines="3"
+                android:minLines="3"
+                android:padding="8dp"
+                android:scrollbars="vertical"
+                android:hint="Took bus to school"
+                android:textColor="@color/base"/>
+
+            <!-- Date Section -->
+            <TextView
+                android:id="@+id/tvCreateDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Date"
+                android:textColor="@color/base"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etCreateDate"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext_transparent"
+                android:hint="Select Date"
+                android:inputType="date"
+                android:paddingHorizontal="8dp" />
+
+            <!-- Category Section -->
+            <TextView
+                android:id="@+id/tvCreateCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category"
+                android:textColor="@color/base"
+                android:textStyle="bold" />
+
+            <!-- Buttons Section -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:padding="0dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/selectDropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:layout_margin="0dp"
+                    android:text="Select a category"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tvCreateImg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Image"
+                android:textColor="@color/base"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnCreateImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:gravity="center"
+                    android:text="Choose image"
+                    android:textColorLink="#705454" />
+
+                <Button
+                    android:id="@+id/btnViewImage"
+                    android:layout_width="39dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/view"
+                    android:contentDescription="View Image"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnCreate"
+                    android:layout_width="200dp"
+                    android:layout_height="48dp"
+                    android:backgroundTint="#3FFFAF"
+                    android:text="@string/btnCreate"
+                    android:textColor="@color/base"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

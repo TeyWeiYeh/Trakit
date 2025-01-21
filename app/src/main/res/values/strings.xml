@@ -32,17 +32,28 @@
     <string name="email">Email</string>
     <string name="username">Username</string>
 
-    <!--Create Category Title-->
+    <!-- Category-->
     <string name="tv_create_cat">Create Category</string>
-    <string name="create_cat_save">save</string>
-    <string name="create_cat_cancel">cancel</string>
+    <string name="btnSave">save</string>
+    <string name="btnCancel">cancel</string>
+    <string name="btnDelete">delete</string>
+
+    <!--Transaction-->
+    <string name="view_trans">Viewing</string>
+    <string name="update_trans">Update</string>
+    <string name="view_amt">Amount</string>
+    <string name="btnUpdate">update</string>
+    <string name="btnConfirm">confirm</string>
+    <string name="btnCreate">Add</string>
 
     <string-array name="month_year_values">
-        <item>January 2024</item>
-        <item>February 2024</item>
-        <item>March 2024</item>
-        <item>April 2024</item>
+        <item>January 2025</item>
+        <item>February 2025</item>
+        <item>March 2025</item>
+        <item>April 2025</item>
     </string-array>
 
-
+    <!--Expense/Income Radio Button-->
+    <string name="expense">Expense</string>
+    <string name="income">Income</string>
 </resources>

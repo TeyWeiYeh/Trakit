@@ -8,11 +8,11 @@ public class StringUtils {
     public static String convertDateFormat(String dateString) {
         try {
             // Parse the input date string
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date date = inputFormat.parse(dateString);
 
             // Format the date to MM/DD/YYYY
-            SimpleDateFormat outputFormat = new SimpleDateFormat("MM/dd/yyyy");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
             return outputFormat.format(date);
         } catch (ParseException e) {
             e.printStackTrace();

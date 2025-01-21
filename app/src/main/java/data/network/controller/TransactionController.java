@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import data.network.ApiController;
 import data.network.ICallback;
+import domain.Transaction;
 import utils.DateUtils;
 
 public class TransactionController {
@@ -28,16 +29,49 @@ public class TransactionController {
                 JSONObject responseObject = new JSONObject(response);
                 JSONArray dataArray = new JSONArray(responseObject.optString("data"));
                 callback.onSuccess(dataArray);
-                System.out.println(dataArray);
             } catch (JSONException e){
                 e.printStackTrace();
                 Toast.makeText(context, "Response error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         }, error->{
             if (error instanceof AuthFailureError)
-                callback.onError("Authentication failed. Please login again");
+                callback.onAuthFailure("Authentication failed. Please login again");
             else
                 callback.onError("Failed to retrieve transactions" + error.toString());
+        });
+    }
+
+    public void createTransaction(Transaction transaction, ICallback callback){
+        apiController.createTransaction(transaction, response -> {
+            callback.onSuccess("Successfully created transaction");
+        }, error -> {
+            if (error instanceof AuthFailureError){
+                callback.onAuthFailure("Authentication failed. Please login again");
+            }
+            else
+                callback.onError("Failed to create transaction");
+        });
+    }
+
+    public void updateTransaction(Transaction transaction, ICallback callback){
+        apiController.updateTransaction(transaction, response->{
+            callback.onSuccess("Successfully updated transaction");
+        }, error -> {
+            if (error instanceof AuthFailureError)
+                callback.onAuthFailure("Authentication failed. Please login again");
+            else
+                callback.onError("Failed to update transaction");
+        });
+    }
+
+    public void deleteTransaction(String id, ICallback callback){
+        apiController.deleteTransaction(id, response->{
+            callback.onSuccess("Successfully deleted transaction");
+        }, error->{
+            if (error instanceof AuthFailureError)
+                callback.onAuthFailure("Authentication failed. Please login again");
+            else
+                callback.onError("Failed to delete transaction");
         });
     }
 }

@@ -38,6 +38,7 @@ import java.io.PrintWriter;
 import data.network.ICallback;
 import data.network.controller.UserController;
 import domain.User;
+import utils.ImageUtils;
 
 public class ProfileActivity extends AppCompatActivity {
     ImageView ivProfilePic;
@@ -127,8 +128,8 @@ public class ProfileActivity extends AppCompatActivity {
             try {
                 // Get the selected image as a Bitmap
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
-                bitmap = editImgSize(bitmap, 120, 120);
-                base64ImgString = encodeToBase64(bitmap, Bitmap.CompressFormat.PNG, 100);
+                bitmap = ImageUtils.editImgSize(bitmap, 120, 120);
+                base64ImgString = ImageUtils.encodeToBase64(bitmap, Bitmap.CompressFormat.PNG, 100);
                 // Set the image to an ImageView
                 ivProfilePic.setImageBitmap(bitmap);
             } catch (Exception e) {
@@ -152,7 +153,7 @@ public class ProfileActivity extends AppCompatActivity {
                     etProfileEmail.setText(email);
                     etProfileUsername.setText(username);
                     if (!base64_profile_pic.isEmpty()) {
-                        Bitmap bitmap_profile_pic = decodeBase64(base64_profile_pic);
+                        Bitmap bitmap_profile_pic = ImageUtils.decodeBase64(base64_profile_pic);
                         if (bitmap_profile_pic != null) {
                             ivProfilePic.setImageBitmap(bitmap_profile_pic);
                         } else {
@@ -229,22 +230,5 @@ public class ProfileActivity extends AppCompatActivity {
 //            return null;
 //        }
 //    }
-
-    public static String encodeToBase64(Bitmap image, Bitmap.CompressFormat compressFormat, int quality)
-    {
-        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
-        image.compress(compressFormat, quality, byteArrayOS);
-        return Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT);
-    }
-
-    public static Bitmap decodeBase64(String input)
-    {
-        byte[] decodedBytes = Base64.decode(input, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-    }
-
-    public Bitmap editImgSize(Bitmap bitmap, int width, int height){
-        return Bitmap.createScaledBitmap(bitmap, width, height, false);
-    }
 
 }

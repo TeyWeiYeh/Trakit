@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".transactionfragments.ViewTransactionFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Top App Bar -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topAppBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/base"
+            app:navigationIcon="@drawable/arrow_back"
+            app:navigationIconTint="@color/white"
+            app:title="@string/view_trans"
+            app:titleTextColor="@color/white"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Radio Group -->
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_margin="16dp"
+            android:background="@drawable/segmented_background"
+            android:orientation="horizontal"
+            android:padding="2dp"
+            app:layout_constraintTop_toBottomOf="@id/topAppBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <RadioButton
+                android:id="@+id/expenseButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/segmented_left_selected"
+                android:button="@null"
+                android:checked="true"
+                android:gravity="center"
+                android:text="Expense"
+                android:clickable="false"
+                android:textColor="@drawable/color"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/incomeButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/segmented_right_unselected"
+                android:button="@null"
+                android:gravity="center"
+                android:text="Income"
+                android:clickable="false"
+                android:textColor="@drawable/color"
+                android:textStyle="bold" />
+        </RadioGroup>
+
+        <!-- Scrollable Content -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="16dp"
+            app:layout_constraintTop_toBottomOf="@id/radioGroup"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Amount Section -->
+                <TextView
+                    android:id="@+id/tvViewAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/view_amt"
+                    android:textColor="@color/base"
+                    android:textStyle="bold" />
+
+                <!-- Horizontal Layout for Amount and Currency -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+
+                    <EditText
+                        android:id="@+id/etAmount"
+                        android:layout_width="0dp"
+                        android:layout_height="53dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/rounded_edittext"
+                        android:enabled="false"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:hint="0.00"
+                        android:inputType="numberDecimal"
+                        android:paddingHorizontal="8dp"
+                        android:textSize="32dp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCurrency"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_gravity="center_vertical"
+                        android:text="SGD"
+                        android:textSize="16sp"
+                        android:textColor="@color/base"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvViewDesc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Description"
+                    android:textColor="@color/base"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etViewDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Took bus to school"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:maxLines="3"
+                    android:scrollbars="vertical"
+                    android:background="@drawable/rounded_edittext"
+                    android:textColor="#5A000000"
+                    android:padding="8dp"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:enabled="true" />
+
+                <!-- Date Section -->
+                <TextView
+                    android:id="@+id/tvViewDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Date"
+                    android:textColor="@color/base"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etViewDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="8dp"
+                    android:inputType="date"
+                    android:background="@drawable/rounded_edittext"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:enabled="false"
+                    android:hint="11-01-2025"
+                    android:paddingHorizontal="8dp" />
+
+                <!-- Category Section -->
+                <TextView
+                    android:id="@+id/tvViewCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Category"
+                    android:textColor="@color/base"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etViewCatName"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="8dp"
+                    android:text="Food"
+                    android:paddingHorizontal="8dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:enabled="false" />
+
+                <!-- Buttons Section -->
+                <TextView
+                    android:id="@+id/tvViewImg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Image"
+                    android:textColor="@color/base"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnViewImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:backgroundTint="@color/light_gray"
+                    android:gravity="center"
+                    android:text="View Image"
+                    android:textColorLink="#705454" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <Button
+                        android:id="@+id/btnViewDelete"
+                        android:layout_width="115dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="100dp"
+                        android:backgroundTint="@color/delete"
+                        android:text="@string/btnDelete"
+                        android:textColor="@color/base"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnViewUpdate"
+                        android:layout_width="115dp"
+                        android:layout_height="48dp"
+                        android:backgroundTint="#3FFFAF"
+                        android:text="@string/btnUpdate"
+                        android:textColor="@color/base"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
+
+
+
+    <!--        <com.google.android.material.textfield.TextInputLayout-->
+    <!--            android:id="@+id/menu"-->
+    <!--            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginHorizontal="16dp"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:hint="Choose a category"-->
+    <!--            app:boxBackgroundColor="@color/light_gray"-->
+    <!--            app:layout_constraintTop_toBottomOf="@id/tvViewCategory"-->
+    <!--            app:layout_constraintStart_toStartOf="parent"-->
+    <!--            app:layout_constraintEnd_toEndOf="parent">-->
+
+    <!--            <AutoCompleteTextView-->
+    <!--                android:id="@+id/dropdownListValue"-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:background="@drawable/rounded_edittext"-->
+    <!--                android:enabled="false"-->
+    <!--                android:focusable="false"-->
+    <!--                android:focusableInTouchMode="false"-->
+    <!--                android:clickable="false"-->
+    <!--                android:inputType="none"-->
+    <!--                android:textColor="@color/base" />-->
+
+    <!--        </com.google.android.material.textfield.TextInputLayout>-->

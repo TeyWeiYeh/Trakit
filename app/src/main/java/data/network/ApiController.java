@@ -17,7 +17,10 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -165,15 +168,22 @@ public class ApiController {
             }
         };
         VolleySingleton.getInstance(context).addToRequestQueue(getAllTransactionRequest);
-        Log.d("function called", url);
     }
     public void createTransaction(Transaction transaction, Response.Listener<JSONObject> successListener, Response.ErrorListener errorListener){
         JSONObject transObject = new JSONObject();
+        Date date;
+        String formattedDate;
         try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+            date = inputFormat.parse(transaction.transDate);
+            formattedDate = outputFormat.format(date);
             transObject.put("amount", transaction.amount);
             transObject.put("description", transaction.description);
-            transObject.put("recurring", false);
+            transObject.put("trans_date", formattedDate);
+            transObject.put("recurring", transaction.recurring);
             transObject.put("category_id", transaction.categoryId);
+            transObject.put("image", transaction.base64Img);
             JsonObjectRequest createTransObject = new JsonObjectRequest(Request.Method.POST, trans_url, transObject, successListener, errorListener){
                 @Override
                 public Map<String, String> getHeaders(){
@@ -183,36 +193,59 @@ public class ApiController {
                 }
             };
             VolleySingleton.getInstance(context).addToRequestQueue(createTransObject);
-        } catch (JSONException e){
+        } catch (Exception e){
             errorListener.onErrorResponse(new VolleyError("JSON error"));
         }
     }
 
     public void updateTransaction(Transaction transaction, Response.Listener<JSONObject> successListener, Response.ErrorListener errorListener){
         String url = trans_url + "?id=" + transaction.id;
-        JSONObject transObject = new JSONObject();
+        Date date;
+        String formattedDate;
         try {
-            transObject.put("amount", transaction.amount);
-            transObject.put("description", transaction.description);
-            transObject.put("recurring", false);
-            transObject.put("category_id", transaction.categoryId);
-            JsonObjectRequest createTransObject = new JsonObjectRequest(Request.Method.POST, trans_url, transObject, successListener, errorListener){
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> headers = new HashMap<>();
-                    headers.put("Authorization", "Bearer " + getStoredToken());
-                    return headers;
-                }
-            };
-            VolleySingleton.getInstance(context).addToRequestQueue(createTransObject);
-        } catch (JSONException e){
+            SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+            date = inputFormat.parse(transaction.transDate);
+            formattedDate = outputFormat.format(date);
+
+            JSONObject transObject = new JSONObject();
+            try {
+                transObject.put("amount", transaction.amount);
+                transObject.put("description", transaction.description);
+                transObject.put("trans_date", formattedDate);
+                transObject.put("recurring", transaction.isRecurring());
+                transObject.put("category_id", transaction.categoryId);
+                transObject.put("image", transaction.base64Img);
+                JsonObjectRequest createTransObject = new JsonObjectRequest(Request.Method.PUT, url, transObject, successListener, errorListener){
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> headers = new HashMap<>();
+                        headers.put("Authorization", "Bearer " + getStoredToken());
+                        return headers;
+                    }
+                };
+                VolleySingleton.getInstance(context).addToRequestQueue(createTransObject);
+            } catch (JSONException e){
+                e.printStackTrace();
+                errorListener.onErrorResponse(new VolleyError("JSON error"));
+            }
+
+        } catch (ParseException e) {
             e.printStackTrace();
-            errorListener.onErrorResponse(new VolleyError("JSON error"));
         }
     }
 
     public void deleteTransaction(String id, Response.Listener<String> successListener, Response.ErrorListener errorListener){
-
+        String url = trans_url + "?id=" + id;
+        StringRequest deleteTransRequest = new StringRequest(Request.Method.DELETE, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(deleteTransRequest);
     }
 
     private String getStoredToken() {

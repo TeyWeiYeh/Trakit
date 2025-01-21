@@ -36,7 +36,7 @@ import mdad.localdata.trakit.mainfragments.TransactionFragment;
 public class MainActivity extends AppCompatActivity {
     //handles the navigation and swiping gestures of the fragments
     private static final int NUM_PAGES = 2;
-    //172.30.33.55
+    //192.168.18.18
     public final static String ipBaseUrl = "http://192.168.18.18/project/api";
     BottomNavigationView bottomNavigationView;
     MaterialToolbar topAppBar;

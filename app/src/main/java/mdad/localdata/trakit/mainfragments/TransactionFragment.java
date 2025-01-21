@@ -10,6 +10,8 @@ import android.os.Bundle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -49,6 +51,8 @@ import domain.Transaction;
 import mdad.localdata.trakit.AuthActivity;
 import mdad.localdata.trakit.ProfileActivity;
 import mdad.localdata.trakit.R;
+import mdad.localdata.trakit.transactionfragments.AllTransactionsFragment;
+import mdad.localdata.trakit.transactionfragments.UpdateTransactionFragment;
 import utils.StringUtils;
 
 /**
@@ -104,134 +108,13 @@ public class TransactionFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_transaction, container, false);
     }
-    String token, transId, transAmount, transDescription, transDateCreated, transDateUpdated, transRecurring, transBudgetId, transUserId, transImage, transCatId, transCatName, transCatType;
-    MaterialToolbar transTopAppBar;
-    TransactionController transactionController;
-    ListView transListView;
-    Button btnChooseDate;
-    Spinner spinnerMonthYear;
-    int currentYear, currentMonth;
-    String monthName, selectedMonthYear;
-    Fragment currentFragment;
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
-        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
-        token = sharedPreferences.getString("token", null);
-        transTopAppBar = (MaterialToolbar) view.findViewById(R.id.topAppBar);
-        transListView = (ListView) view.findViewById(R.id.transListView);
-        spinnerMonthYear = (Spinner) view.findViewById(R.id.spinnerMonthYear);
-        transactionController = new TransactionController(getContext());
-        currentYear = Calendar.getInstance().get(Calendar.YEAR);
-        currentMonth = Calendar.getInstance().get(Calendar.MONTH);
-        monthName = new DateFormatSymbols().getMonths()[currentMonth];
-        int fragmentId = this.getId();
-//        currentFragment = requireActivity().getSupportFragmentManager().getFragment()
-        transTopAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                int itemId = menuItem.getItemId();
-                if (itemId == R.id.action_profile) {
-                    Intent goToProfilePage = new Intent(getContext(), ProfileActivity.class);
-                    goToProfilePage.putExtra("currentPage", fragmentId);
-                    startActivity(goToProfilePage);
-                    return true;
-                }
-                else if (itemId == R.id.action_logout){
-                    sharedPreferences.edit().putString("token",null).apply();
-                    Intent i = new Intent(getContext(), AuthActivity.class);
-                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(i);
-                    return true;
-                }
-                else
-                    return false;
-            }
-        });
-
-        List<String> monthYearList = new ArrayList<>();
-        for (int year = currentYear; year >= currentYear - 3; year--) {
-            int monthLimit = (year == currentYear) ? currentMonth + 1 : 12;
-
-            for (int month = monthLimit - 1; month >= 0; month--) {
-                monthName = new DateFormatSymbols().getMonths()[month];
-                monthYearList.add(monthName + " " + year);
-            }
-        }
-        selectedMonthYear = monthYearList.get(0);
-        transList();
-
-        // Set up adapter for spinner
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, monthYearList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerMonthYear.setAdapter(adapter);
-
-        spinnerMonthYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedMonthYear = parent.getItemAtPosition(position).toString();
-                Log.d("Spinner Selection", "Selected: " + selectedMonthYear);
-                transList();
-                // Handle the selected month and year
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Handle no selection if needed
-            }
-        });
-    }
-
-    public void transList(){
-        ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
-        transactionController.getAllTransactions(selectedMonthYear, new ICallback() {
-            @Override
-            public void onSuccess(Object result) {
-                if (result == null){
-                    Toast.makeText(getContext(), "No data found", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                try{
-                    JSONArray transListArray = (JSONArray) result;
-                    for (int i=0; i<transListArray.length(); i++){
-                        JSONObject transaction = transListArray.getJSONObject(i);
-                        transId = transaction.getString("transactionId");
-                        transAmount = transaction.getString("amount");
-                        transDescription = transaction.getString("description");
-                        transDateCreated = transaction.getString("date_created");
-                        transDateUpdated = transaction.getString("date_updated");
-                        transRecurring = transaction.getString("recurring");
-                        transBudgetId = transaction.getString("budgetId");
-                        transUserId = transaction.getString("userId");
-                        transImage = transaction.getString("image");
-                        transCatId = transaction.getString("categoryId");
-                        transCatName = transaction.getString("categoryName");
-                        transCatType = transaction.getString("categoryType");
-                        HashMap<String, String> hashMap = new HashMap<>();
-                        hashMap.put("type", StringUtils.capitalizeFirstLetter(transCatType));
-                        hashMap.put("date", StringUtils.convertDateFormat(transDateCreated));
-                        hashMap.put("catName", StringUtils.capitalizeFirstLetter(transCatName));
-                        hashMap.put("amount", transAmount);
-                        hashMap.put("typeIcon", "-");
-                        arrayList.add(hashMap);
-                    }
-                    TransactionAdapter adapter = new TransactionAdapter(getContext(), arrayList);
-                    transListView.setAdapter(adapter);
-                } catch (JSONException e){
-                    e.printStackTrace();
-                    Toast.makeText(getContext(), "Error parsing category data", Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                Toast.makeText(getContext(), "Failed to retrieve data: " + error, Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onAuthFailure(String message) {
-                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
-                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(goToLoginPage);
-            }
-        });
+        Fragment allTransFragment = new AllTransactionsFragment();
+        FragmentManager fm = getChildFragmentManager();
+        FragmentTransaction fragTrans = fm.beginTransaction();
+        fragTrans.replace(R.id.trans_child_container, allTransFragment);
+        fragTrans.commit();
     }
 }
