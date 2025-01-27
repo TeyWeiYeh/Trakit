@@ -9,4 +9,11 @@
     <color name="save">#3FFFAF</color>
     <color name="income">#1B5E20</color>
     <color name="expense">#B71C1C</color>
+    <color name="pastel_red">#FD8A8A</color>
+    <color name="pastel_pink">#FFCBCB</color>
+    <color name="pastel_purple">#9EA1D4</color>
+    <color name="pastel_yellow">#F1F7B5</color>
+    <color name="pastel_green">#A8D1D1</color>
+    <color name="pastel_blue">#E5F4F4</color>
+    <color name="recurring">#999ba1</color>
 </resources>

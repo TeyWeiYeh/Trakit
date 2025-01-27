@@ -19,6 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -89,11 +90,14 @@ public class ViewTransactionFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_view_transaction, container, false);
     }
     EditText etAmount, etDesc, etDate, etCatName;
-    String type, amount, desc, date, catName, base64Img, id;
+    String type, amount, desc, date, catName, base64Img, id, recurring;
+    //Boolean recurring;
     MaterialToolbar topAppBar;
     Button btnViewImage, closeButton, btnViewDelete, btnViewUpdate;
+    ImageButton btnRecurring;
     ImageView transImg;
     TransactionController transactionController;
+    Boolean boolRecc;
 //    AutoCompleteTextView catDropdownListValue;
     public void onViewCreated(View view, Bundle savedInstanceState){
         Bundle retrieveInfo = getArguments();
@@ -105,12 +109,9 @@ public class ViewTransactionFragment extends Fragment {
         catName = retrieveInfo.getString("catName");
         base64Img = retrieveInfo.getString("base64Img");
         id = retrieveInfo.getString("id");
+        recurring = retrieveInfo.getString("recurring");
+        boolRecc = Boolean.parseBoolean(recurring);
         transactionController = new TransactionController(getContext());
-//        Log.d("Base 64 img", base64Img);
-//        catDropdownListValue = view.findViewById(R.id.dropdownListValue);
-//        ArrayAdapter adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, categories);
-//        catDropdownListValue.setAdapter(adapter);
-//        catDropdownListValue.setText(catName, false);
 
         etAmount = view.findViewById(R.id.etAmount);
         etDesc = view.findViewById(R.id.etViewDesc);
@@ -119,6 +120,7 @@ public class ViewTransactionFragment extends Fragment {
         btnViewImage = view.findViewById(R.id.btnViewImage);
         btnViewDelete = view.findViewById(R.id.btnViewDelete);
         btnViewUpdate = view.findViewById(R.id.btnViewUpdate);
+        btnRecurring = view.findViewById(R.id.btnRecurring);
         etAmount.setText(amount);
         etDesc.setText(desc);
         etDate.setText(date);
@@ -137,21 +139,6 @@ public class ViewTransactionFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 showFullScreenDialog();
-//                LayoutInflater inflater = LayoutInflater.from(getContext());
-//                View customView = inflater.inflate(R.layout.dialog_with_image, null);
-//
-//                transImg = customView.findViewById(R.id.transImg);
-//                transImg.setImageBitmap(ImageUtils.decodeBase64(base64Img));
-
-                // Show the dialog
-//                new MaterialAlertDialogBuilder(getContext())
-//                        .setTitle("Image")
-//                        .setView(customView)
-//                        .setNeutralButton(getResources().getString(R.string.btnCancel), (dialog, which) -> {
-//                            dialog.dismiss();
-//                        })
-//                        .show();
-
             }
         });
         btnViewDelete.setOnClickListener(new View.OnClickListener() {
@@ -198,7 +185,9 @@ public class ViewTransactionFragment extends Fragment {
                 fm.beginTransaction().replace(R.id.trans_child_container, goToUpdateTransFragment).commit();
             }
         });
-
+        if (boolRecc){
+            btnRecurring.setColorFilter(ContextCompat.getColor(getContext(), R.color.save));
+        }
     }
 
     private void showFullScreenDialog() {

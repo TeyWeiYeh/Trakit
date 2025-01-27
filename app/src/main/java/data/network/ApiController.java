@@ -158,7 +158,7 @@ public class ApiController {
 
     //Transaction API
     public void getAllTransactions(String monthYear, Response.Listener<String> successListener, Response.ErrorListener errorListener){
-        String url = MainActivity.ipBaseUrl + "/transaction.php?date_created=" + monthYear;
+        String url = trans_url + "?date_created=" + monthYear;
         StringRequest getAllTransactionRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
             @Override
             public Map<String, String> getHeaders() {
@@ -246,6 +246,45 @@ public class ApiController {
             }
         };
         VolleySingleton.getInstance(context).addToRequestQueue(deleteTransRequest);
+    }
+
+    public void getAllTransactionsByDate(String day, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = trans_url + "?day=" + day;
+        StringRequest getRecurringTransRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(getRecurringTransRequest);
+    }
+
+    public void getLineChartData(String year, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = MainActivity.ipBaseUrl + "/linechart.php?year=" + year;
+        StringRequest lineChartDataRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(lineChartDataRequest);
+    }
+
+    public void getPieChartData(String year, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = MainActivity.ipBaseUrl + "/piechart.php?year=" + year;
+        StringRequest lineChartDataRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(lineChartDataRequest);
     }
 
     private String getStoredToken() {

@@ -7,13 +7,14 @@
     android:id="@+id/chart_fragment"
     tools:context=".mainfragments.ChartFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/base"
             app:layout_constraintEnd_toEndOf="parent"
@@ -23,5 +24,54 @@
             app:title="@string/chart_top_navbar"
             app:titleTextColor="@color/white" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="12dp">
+            <ImageButton
+                android:id="@+id/btnPrevYear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:src="@drawable/arrow_left_24"
+            android:contentDescription="Previous Year" />
+
+            <!-- Year Text -->
+            <TextView
+                android:id="@+id/tvYear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2025"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginHorizontal="16dp"
+                android:gravity="center" />
+
+            <!-- Right Arrow -->
+            <ImageButton
+                android:id="@+id/btnNextYear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:src="@drawable/arrow_right_24"
+            android:contentDescription="Next Year" />
+        </LinearLayout>
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/lineChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_marginVertical="8dp" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp">
+
+        </com.github.mikephil.charting.charts.PieChart>
+    </LinearLayout>
+
 </FrameLayout>

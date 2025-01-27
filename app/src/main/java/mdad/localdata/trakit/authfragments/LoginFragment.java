@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -138,11 +139,12 @@ public class LoginFragment extends Fragment {
                             JSONObject jsonObject = new JSONObject(response);
                             String message = jsonObject.getString("message");
                             String token = jsonObject.getString("token");
-
+                            Log.d("token", token);
                             if (message.equals("Login successful")) {
                                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                                 storeToken(token);
                                 Intent i = new Intent(getContext(), MainActivity.class);
+                                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(i);
                                 // Navigate to another activity or perform actions on successful login
                             } else if (message.equals("Invalid credentials")){

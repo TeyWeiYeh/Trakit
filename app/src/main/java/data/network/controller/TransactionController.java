@@ -1,6 +1,7 @@
 package data.network.controller;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -28,6 +29,7 @@ public class TransactionController {
             try{
                 JSONObject responseObject = new JSONObject(response);
                 JSONArray dataArray = new JSONArray(responseObject.optString("data"));
+                Log.d("count of array", String.valueOf(dataArray.length()));
                 callback.onSuccess(dataArray);
             } catch (JSONException e){
                 e.printStackTrace();
@@ -72,6 +74,24 @@ public class TransactionController {
                 callback.onAuthFailure("Authentication failed. Please login again");
             else
                 callback.onError("Failed to delete transaction");
+        });
+    }
+
+    public void getAllTransactionsByDate(String day, ICallback callback){
+        apiController.getAllTransactionsByDate(day, response->{
+            try{
+                JSONObject responseObject = new JSONObject(response);
+                JSONArray dataArray = new JSONArray(responseObject.optString("data"));
+                callback.onSuccess(dataArray);
+            } catch (JSONException e){
+                e.printStackTrace();
+                Toast.makeText(context, "Response error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }, error -> {
+            if (error instanceof AuthFailureError)
+                callback.onAuthFailure("Authentication failed. Please login again");
+            else
+                callback.onError("Failed to retrieve transactions");
         });
     }
 }

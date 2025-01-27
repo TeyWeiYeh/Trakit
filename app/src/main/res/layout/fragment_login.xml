@@ -118,7 +118,7 @@
                 android:id="@+id/tvNoAcc"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Don't have an account?"
+                android:text="@string/haveAcc"
                 android:textColor="@color/base" />
 
             <TextView
@@ -126,7 +126,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:text="Sign up"
+                android:text="@string/goToSignup"
                 android:textStyle="bold"
                 android:textColor="@color/base" />
         </LinearLayout>

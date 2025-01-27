@@ -146,15 +146,31 @@
                 android:textColor="@color/base"
                 android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/etCreateDate"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="42dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/rounded_edittext_transparent"
-                android:hint="Select Date"
-                android:inputType="date"
-                android:paddingHorizontal="8dp" />
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/etCreateDate"
+                    android:layout_width="300dp"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/rounded_edittext_transparent"
+                    android:hint="Select Date"
+                    android:inputType="date"
+                    android:paddingHorizontal="8dp" />
+
+                <ImageButton
+                    android:id="@+id/btnRecurring"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/repeat_24"
+                    android:paddingLeft="12dp"
+                    android:paddingTop="16dp"/>
+            </LinearLayout>
 
             <!-- Category Section -->
             <TextView

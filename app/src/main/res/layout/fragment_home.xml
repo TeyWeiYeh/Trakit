@@ -23,6 +23,38 @@
             app:title="@string/home_top_navbar"
             app:titleTextColor="@color/white" />
 
+        <TextView
+            android:id="@+id/tvResponse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:text="TextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/topAppBar" />
+
+        <Button
+            android:id="@+id/btnSendQuery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Send Query"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.134"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/etQuery" />
+
+        <EditText
+            android:id="@+id/etQuery"
+            android:layout_width="341dp"
+            android:layout_height="49dp"
+            android:layout_marginStart="36dp"
+            android:layout_marginTop="24dp"
+            android:ems="10"
+            android:inputType="text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvResponse" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

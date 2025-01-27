@@ -30,10 +30,8 @@ public class CategoryController {
         apiController.getAllCategory(type, response -> {
             try {
                 JSONObject jsonObject = new JSONObject(response);
-                //String data = jsonObject.getString("data");
                 JSONArray dataArray = new JSONArray(jsonObject.optString("data"));
                 callback.onSuccess(dataArray);
-                Log.d("all cat resp", String.valueOf(dataArray));
             } catch (JSONException e){
                 e.printStackTrace();
                 callback.onError("JSON error: " + e.getMessage());

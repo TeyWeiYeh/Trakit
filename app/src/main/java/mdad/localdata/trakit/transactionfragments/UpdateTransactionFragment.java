@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -31,6 +32,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -119,7 +121,7 @@ public class UpdateTransactionFragment extends Fragment {
     }
 
     EditText etUpdateDate, etUpdateAmount, etUpdateDesc;
-    String type, amount, desc, date, catName, id, dbType, token, newCatId, currentPhotoPath, base64Img, updateBase64Img;
+    String type, amount, desc, date, catName, id, dbType, token, newCatId, currentPhotoPath, base64Img, updateBase64Img, recurring;
     MaterialToolbar topAppBar;
     CategoryController categoryController;
     AutoCompleteTextView catDropdownValue;
@@ -131,6 +133,8 @@ public class UpdateTransactionFragment extends Fragment {
     SharedPreferences sharedPreferences;
     ImageView transImg;
     Bitmap selectedImageBitmap = null;
+    Boolean boolRecc;
+    ImageButton btnRecurring;
     int ivHeight, ivWidth, newHeight, newWidth, currentBitmapHeight, currentBitmapWidth;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
@@ -150,6 +154,8 @@ public class UpdateTransactionFragment extends Fragment {
         catName = retrieveInfo.getString("catName");
         id = retrieveInfo.getString("id");
         base64Img = retrieveInfo.getString("base64Img");
+        recurring = retrieveInfo.getString("recurring");
+        boolRecc = Boolean.parseBoolean(recurring);
 
         etUpdateDate = view.findViewById(R.id.etUpdateDate);
         etUpdateAmount = view.findViewById(R.id.etUpdateAmount);
@@ -162,26 +168,31 @@ public class UpdateTransactionFragment extends Fragment {
         btnUpdate = view.findViewById(R.id.btnUpdateUpdate);
         btnUpdateImage = view.findViewById(R.id.btnUpdateImage);
         btnViewImage = view.findViewById(R.id.btnViewImage);
+        btnRecurring = view.findViewById(R.id.btnRecurring);
+        if (boolRecc) {
+            btnRecurring.setColorFilter(ContextCompat.getColor(getContext(), R.color.save));
+        }
+//        else {
+//            btnRecurring.setColorFilter(ContextCompat.getColor(getContext(), R.color.recurring));
+//        }
 
-        topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
+        topAppBar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                int itemId = menuItem.getItemId();
-                if (itemId == R.id.action_profile) {
-                    // Navigate to profile
-                    Intent goToProfilePage = new Intent(getContext(), ProfileActivity.class);
-                    startActivity(goToProfilePage);
-                    return true;
-                } else if (itemId == R.id.action_logout) {
-                    // Logout logic
-                    sharedPreferences.edit().putString("token",null).apply();
-                    Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
-                    //clears the stack
-                    goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(goToLoginPage);
-                    return true;
-                } else
-                    return false;
+            public void onClick(View view) {
+                new MaterialAlertDialogBuilder(getContext())
+                        .setTitle("Cancel")
+                        .setMessage("Any changes made that are not saved will be discarded")
+                        .setNegativeButton(getResources().getString(R.string.btnCancel), (dialog, which) -> {
+                            dialog.dismiss();
+                        })
+                        .setPositiveButton(getResources().getString(R.string.btnConfirm), (dialog, which) -> {
+                            Fragment goToViewFragment = new ViewTransactionFragment();
+                            goToViewFragment.setArguments(retrieveInfo);
+                            FragmentManager fm = getParentFragmentManager();
+                            fm.beginTransaction().replace(R.id.trans_child_container, goToViewFragment).commit();
+                        })
+                        .setIcon(ContextCompat.getDrawable(getContext(), R.drawable.warning_icon))
+                        .show();
             }
         });
 
@@ -209,16 +220,21 @@ public class UpdateTransactionFragment extends Fragment {
         MaterialDatePicker<Long> materialDatePicker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText("Select Date")
                 .build();
+
+        etUpdateDate.setFocusable(false);  // Make the EditText non-editable (so user clicks to trigger date picker)
+        etUpdateDate.setClickable(true);   // Make the EditText clickable to trigger date picker
+
         etUpdateDate.setOnClickListener(v -> {
-            materialDatePicker.show(getParentFragmentManager(), materialDatePicker.toString());
+            materialDatePicker.show(getParentFragmentManager(), materialDatePicker.getTag());  // Show the date picker on click
         });
+
         materialDatePicker.addOnPositiveButtonClickListener(selection -> {
             // Convert the selected date (milliseconds) to a formatted date string
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(selection);
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             String formattedDate = sdf.format(calendar.getTime());
-            etUpdateDate.setText(formattedDate);
+            etUpdateDate.setText(formattedDate);  // Set the formatted date into EditText
         });
 
         btnCancel.setOnClickListener(v -> {
@@ -257,13 +273,14 @@ public class UpdateTransactionFragment extends Fragment {
                     Toast.makeText(getContext(),"Please fill in all fields", Toast.LENGTH_LONG).show();
                 }
                 else{
-                    Transaction updatedTransObject = new Transaction(id, Float.parseFloat(newAmount), newDesc, newTransDate, true, newCatId, updateBase64Img);
-                    Log.d("Update Trans", String.valueOf(updatedTransObject.id));
-                    Log.d("Update Trans", String.valueOf(updatedTransObject.amount));
-                    Log.d("Update Trans", String.valueOf(updatedTransObject.description));
-                    Log.d("Update Trans", String.valueOf(updatedTransObject.transDate));
+                    Log.d("recurring value ", String.valueOf(recurring));
+                    Transaction updatedTransObject = new Transaction(id, Float.parseFloat(newAmount), newDesc, newTransDate, boolRecc, newCatId, updateBase64Img);
+//                    Log.d("Update Trans", String.valueOf(updatedTransObject.id));
+//                    Log.d("Update Trans", String.valueOf(updatedTransObject.amount));
+//                    Log.d("Update Trans", String.valueOf(updatedTransObject.description));
+//                    Log.d("Update Trans", String.valueOf(updatedTransObject.transDate));
                     Log.d("Update Trans", String.valueOf(updatedTransObject.isRecurring()));
-                    Log.d("Update Trans", String.valueOf(updatedTransObject.categoryId));
+//                    Log.d("Update Trans", String.valueOf(updatedTransObject.categoryId));
                     updateTransaction(updatedTransObject);
                 }
             }
@@ -278,6 +295,17 @@ public class UpdateTransactionFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 showFullScreenDialog();
+            }
+        });
+        btnRecurring.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolRecc = !boolRecc;
+                if (boolRecc){
+                    btnRecurring.setColorFilter(ContextCompat.getColor(getContext(),R.color.save));
+                } else{
+                    btnRecurring.setColorFilter(ContextCompat.getColor(getContext(),R.color.recurring));
+                }
             }
         });
     }

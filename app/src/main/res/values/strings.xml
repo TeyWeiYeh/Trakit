@@ -56,4 +56,12 @@
     <!--Expense/Income Radio Button-->
     <string name="expense">Expense</string>
     <string name="income">Income</string>
+
+    <!-- Auth Activity -->
+    <string name="btnLogin">Login</string>
+    <string name="btnSignup">Login</string>
+    <string name="noAcc">Don\'t have an account?</string>
+    <string name="goToSignup">Sign up</string>
+    <string name="haveAcc">Have an account?</string>
+    <string name="goToLogin">Login</string>
 </resources>

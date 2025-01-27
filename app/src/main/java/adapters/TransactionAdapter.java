@@ -93,6 +93,7 @@ public class TransactionAdapter extends BaseAdapter {
         String desc = item.get("desc");
         String base64Image = item.get("image");
         String id = item.get("id");
+        String recurring = item.get("recurring");
         Bundle transInfo = new Bundle();
         transInfo.putString("type", type);
         transInfo.putString("date", date);
@@ -101,6 +102,7 @@ public class TransactionAdapter extends BaseAdapter {
         transInfo.putString("desc", desc);
         transInfo.putString("base64Img", base64Image);
         transInfo.putString("id", id);
+        transInfo.putString("recurring", recurring);
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

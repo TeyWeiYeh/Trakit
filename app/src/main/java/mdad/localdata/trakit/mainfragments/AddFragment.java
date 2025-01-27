@@ -10,10 +10,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
@@ -28,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -123,10 +126,11 @@ public class AddFragment extends Fragment {
     ImageView transImg;
     Bitmap selectedImageBitmap = null;
     Button btnAdd, btnChooseImage, btnViewImage, closeButton;
+    ImageButton btnRecurring;
     String token, currentPhotoPath, base64Img, catId;
     String type = Category.Type.EXPENSE.toString();
     ArrayList<HashMap<String, String>> arrayList;
-    Boolean isCreated = false;
+    Boolean isCreated, recurring = false;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
     public void onViewCreated(View view, Bundle savedInstanceState){
@@ -146,6 +150,7 @@ public class AddFragment extends Fragment {
         btnAdd = view.findViewById(R.id.btnCreate);
         btnChooseImage = view.findViewById(R.id.btnCreateImage);
         btnViewImage = view.findViewById(R.id.btnViewImage);
+        btnRecurring = view.findViewById(R.id.btnRecurring);
 
         topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
             @Override
@@ -185,16 +190,21 @@ public class AddFragment extends Fragment {
         MaterialDatePicker<Long> materialDatePicker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText("Select Date")
                 .build();
+
+        etCreateDate.setFocusable(false);  // Make the EditText non-editable (so user clicks to trigger date picker)
+        etCreateDate.setClickable(true);   // Make the EditText clickable to trigger date picker
+
         etCreateDate.setOnClickListener(v -> {
-            materialDatePicker.show(getParentFragmentManager(), materialDatePicker.toString());
+            materialDatePicker.show(getParentFragmentManager(), materialDatePicker.getTag());  // Show the date picker on click
         });
+
         materialDatePicker.addOnPositiveButtonClickListener(selection -> {
             // Convert the selected date (milliseconds) to a formatted date string
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(selection);
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             String formattedDate = sdf.format(calendar.getTime());
-            etCreateDate.setText(formattedDate);
+            etCreateDate.setText(formattedDate);  // Set the formatted date into EditText
         });
 
         btnChooseImage.setOnClickListener(new View.OnClickListener() {
@@ -209,6 +219,16 @@ public class AddFragment extends Fragment {
                 showFullScreenDialog();
             }
         });
+        btnRecurring.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                btnRecurring.setColorFilter(ContextCompat.getColor(getContext(),R.color.save));
+                recurring = !recurring;
+                if (!recurring){
+                    btnRecurring.setColorFilter(ContextCompat.getColor(getContext(),R.color.recurring));
+                }
+            }
+        });
 
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -216,7 +236,7 @@ public class AddFragment extends Fragment {
                 String amt = etCreateAmount.getText().toString();
                 String desc = etCreateDesc.getText().toString();
                 String date = etCreateDate.getText().toString();
-                String catName = catDropdownValue.getText().toString();
+                String catName = catDropdownValue.getText().toString().toLowerCase();
                 catId = null; // Initialize to null by default
                 for (int i = 0; i < arrayList.size(); i++) {
                     String name = arrayList.get(i).get("name").toLowerCase(); // Get the name from the arrayList
@@ -226,11 +246,11 @@ public class AddFragment extends Fragment {
                         break; // Exit the loop once a match is found
                     }
                 }
-                if (amt.isEmpty() || desc.isEmpty() || date.isEmpty()){
+                if (amt.isEmpty() || desc.isEmpty() || date.isEmpty() || catId == null){
                     Toast.makeText(getContext(),"Please fill in all fields", Toast.LENGTH_LONG).show();
                 }
                 else{
-                    Transaction newTransObject = new Transaction(Float.parseFloat(amt), desc, date, false, catId, base64Img);
+                    Transaction newTransObject = new Transaction(Float.parseFloat(amt), desc, date, recurring, catId, base64Img);
                     createTransaction(newTransObject);
                 }
             }
@@ -334,7 +354,7 @@ public class AddFragment extends Fragment {
 
         transImg = dialogView.findViewById(R.id.transImg);
 
-        if (!isCreated) transImg.setImageBitmap(selectedImageBitmap);
+        if (selectedImageBitmap != null) transImg.setImageBitmap(selectedImageBitmap);
         else {
             transImg.setImageBitmap(null);
             isCreated = false;
@@ -402,6 +422,8 @@ public class AddFragment extends Fragment {
                 catDropdownValue.setText("Select a category");
                 getCategoriesByType(type);
                 isCreated = true;
+                recurring = false;
+                selectedImageBitmap = null;
             }
 
             @Override

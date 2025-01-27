@@ -1,17 +1,22 @@
 package mdad.localdata.trakit.authfragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -88,6 +93,7 @@ public class SignupFragment extends Fragment {
 
     EditText etSignupEmail, etSignupUsername, etSignupPassword, etSignupSecondaryPassword;
     Button btnSignup;
+    TextView tvToLogin;
     String email, username, password, confpassword;
     private static String url_signup = MainActivity.ipBaseUrl + "/signup.php";
     public void onViewCreated(View view, Bundle savedInstanceState){
@@ -98,6 +104,7 @@ public class SignupFragment extends Fragment {
         etSignupPassword = (EditText) view.findViewById(R.id.etSignupPassword);
         etSignupSecondaryPassword = (EditText) view.findViewById(R.id.etSignupConfirmPassword);
         btnSignup = (Button) view.findViewById(R.id.btnSignup);
+        tvToLogin = (TextView) view.findViewById(R.id.tvToLogin);
         password = etSignupPassword.getText().toString();
         confpassword = etSignupSecondaryPassword.getText().toString();
         etSignupSecondaryPassword.addTextChangedListener(new TextWatcher() {
@@ -156,6 +163,16 @@ public class SignupFragment extends Fragment {
                 }
             }
         });
+        tvToLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fragmentManager = getParentFragmentManager(); // Use getActivity().getSupportFragmentManager() if not in parent-child hierarchy
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.replace(R.id.fragment_container, new LoginFragment());
+                transaction.addToBackStack(null); // Add to backstack to enable "Back" navigation
+                transaction.commit();
+            }
+        });
     }
 
     private boolean matchPassword(String password, String confPassword){
@@ -171,11 +188,13 @@ public class SignupFragment extends Fragment {
                     JSONObject jsonObject = new JSONObject(response);
                     String message = jsonObject.getString("message");
                     String token = jsonObject.getString("token");
-
+                    Log.d("token", token);
                     if (message.equals("User successfully created")) {
                         Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
                         storeToken(token);
-                        // Navigate to another activity or perform actions on successful login
+                        Intent goToMainActivity = new Intent(getContext(), MainActivity.class);
+                        goToMainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(goToMainActivity);
                     } else if (message.equals("User already exists")){
                         Toast.makeText(getActivity(), "User already exists", Toast.LENGTH_SHORT).show();
                     } else {

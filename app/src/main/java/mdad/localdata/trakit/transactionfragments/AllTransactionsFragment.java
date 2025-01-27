@@ -204,6 +204,7 @@ public class AllTransactionsFragment extends Fragment {
                         hashMap.put("desc", transDescription);
                         hashMap.put("image", transImage);
                         hashMap.put("id", transId);
+                        hashMap.put("recurring", transRecurring);
                         arrayList.add(hashMap);
                     }
                     TransactionAdapter adapter = new TransactionAdapter(getContext(), arrayList, getParentFragmentManager());
