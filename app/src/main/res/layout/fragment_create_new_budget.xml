@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".budgetfragments.CreateNewBudgetFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topAppBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/base"
+            app:navigationIcon="@drawable/arrow_back"
+            app:navigationIconTint="@color/white"
+            app:title="@string/create_budget_top_navbar"
+            app:titleTextColor="@color/white"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/topAppBar">
+            <TextView
+                android:id="@+id/tvCreateAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/view_amt"
+                android:textColor="@color/base"
+                android:textStyle="bold" />
+
+            <!-- Horizontal Layout for Amount and Currency -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <EditText
+                    android:id="@+id/etCreateAmt"
+                    android:layout_width="0dp"
+                    android:layout_height="53dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/rounded_edittext_transparent"
+                    android:hint="0.00"
+                    android:enabled="true"
+                    android:inputType="numberDecimal"
+                    android:paddingHorizontal="8dp"
+                    android:textSize="32dp"
+                    android:textStyle="bold"
+                    android:textColor="@color/base"/>
+
+                <TextView
+                    android:id="@+id/tvCreateCurrency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:text="SGD"
+                    android:textColor="@color/base"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/tvUpdateName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Name"
+                android:textColor="@color/base"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp"/>
+
+            <EditText
+                android:id="@+id/etCreateName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext_transparent"
+                android:enabled="true"
+                android:gravity="top"
+                android:inputType="text"
+                android:maxLines="3"
+                android:minLines="3"
+                android:padding="8dp"
+                android:scrollbars="vertical"
+                android:hint="Japan Trip"
+                android:textColor="@color/base"/>
+
+            <TextView
+                android:id="@+id/tvStartDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start Date"
+                android:textColor="@color/base"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp"/>
+
+                <EditText
+                    android:id="@+id/etCreateStartDate"
+                    android:layout_width="300dp"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/rounded_edittext_transparent"
+                    android:hint="Select Date"
+                    android:inputType="date"
+                    android:paddingHorizontal="8dp" />
+            <TextView
+                android:id="@+id/tvEndDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="End Date"
+                android:textColor="@color/base"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp"/>
+
+            <EditText
+                android:id="@+id/etCreateEndDate"
+                android:layout_width="300dp"
+                android:layout_height="42dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext_transparent"
+                android:hint="Select Date"
+                android:inputType="date"
+                android:paddingHorizontal="8dp" />
+            <Button
+                android:id="@+id/btnCreateBudget"
+                android:layout_width="200dp"
+                android:layout_height="48dp"
+                android:backgroundTint="#3FFFAF"
+                android:text="@string/btnCreate"
+                android:textColor="@color/base"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:layout_marginVertical="12dp"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

@@ -64,4 +64,8 @@
     <string name="goToSignup">Sign up</string>
     <string name="haveAcc">Have an account?</string>
     <string name="goToLogin">Login</string>
+
+    <!--Budget-->
+    <string name="create_budget_top_navbar">Create Budget</string>
+    <string name="update_budget_top_navbar">Update Budget</string>
 </resources>

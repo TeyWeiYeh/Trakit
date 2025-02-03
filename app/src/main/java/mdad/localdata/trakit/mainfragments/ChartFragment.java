@@ -8,13 +8,10 @@ import android.os.Bundle;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,11 +22,8 @@ import mdad.localdata.trakit.AuthActivity;
 import mdad.localdata.trakit.R;
 
 import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.AxisBase;
-import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.LegendEntry;
 import com.github.mikephil.charting.components.XAxis;
@@ -40,20 +34,14 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
-import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-import com.github.mikephil.charting.listener.ChartTouchListener;
-import com.github.mikephil.charting.listener.OnChartGestureListener;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -133,9 +121,9 @@ public class ChartFragment extends Fragment {
         chartController = new ChartController(getContext());
         lineChart = view.findViewById(R.id.lineChart);
         pieChart = view.findViewById(R.id.pieChart);
-        tvYear = view.findViewById(R.id.tvYear);
-        btnPrevYear = view.findViewById(R.id.btnPrevYear);
-        btnNextYear = view.findViewById(R.id.btnNextYear);
+        tvYear = view.findViewById(R.id.tvMonth);
+        btnPrevYear = view.findViewById(R.id.btnPrevMonth);
+        btnNextYear = view.findViewById(R.id.btnNextMonth);
         currYear = Calendar.getInstance().get(Calendar.YEAR);
         tvYear.setText(String.valueOf(currYear));
         getChartData(String.valueOf(currYear), pieChartColorArray);

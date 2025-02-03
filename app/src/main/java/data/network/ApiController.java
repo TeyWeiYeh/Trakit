@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import domain.Budget;
 import domain.Category;
 import domain.Transaction;
 import domain.User;
@@ -40,6 +41,8 @@ public class ApiController {
     String user_url = MainActivity.ipBaseUrl + "/user.php";
     String cat_url = MainActivity.ipBaseUrl + "/category.php";
     String trans_url = MainActivity.ipBaseUrl + "/transaction.php";
+    String budget_url = MainActivity.ipBaseUrl + "/budget.php";
+    String wallet_url = MainActivity.ipBaseUrl + "/wallet.php";
 
     //User API's
     public void getUserDetails(String id, Response.Listener<String> successListener, Response.ErrorListener errorListener){
@@ -152,10 +155,6 @@ public class ApiController {
         VolleySingleton.getInstance(context).addToRequestQueue(stringRequest);
     }
 
-
-
-
-
     //Transaction API
     public void getAllTransactions(String monthYear, Response.Listener<String> successListener, Response.ErrorListener errorListener){
         String url = trans_url + "?date_created=" + monthYear;
@@ -213,7 +212,7 @@ public class ApiController {
                 transObject.put("amount", transaction.amount);
                 transObject.put("description", transaction.description);
                 transObject.put("trans_date", formattedDate);
-                transObject.put("recurring", transaction.isRecurring());
+                transObject.put("recurring", transaction.recurring);
                 transObject.put("category_id", transaction.categoryId);
                 transObject.put("image", transaction.base64Img);
                 JsonObjectRequest createTransObject = new JsonObjectRequest(Request.Method.PUT, url, transObject, successListener, errorListener){
@@ -261,6 +260,19 @@ public class ApiController {
         VolleySingleton.getInstance(context).addToRequestQueue(getRecurringTransRequest);
     }
 
+    public void getAllRecurringTransactions(String monthYear, Boolean recurring, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = trans_url + "?date_created=" + monthYear + "&recurring=" + recurring;
+        StringRequest getAllRecurringTransactionsRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(getAllRecurringTransactionsRequest);
+    }
+
     public void getLineChartData(String year, Response.Listener<String> successListener, Response.ErrorListener errorListener){
         String url = MainActivity.ipBaseUrl + "/linechart.php?year=" + year;
         StringRequest lineChartDataRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
@@ -285,6 +297,105 @@ public class ApiController {
             }
         };
         VolleySingleton.getInstance(context).addToRequestQueue(lineChartDataRequest);
+    }
+
+    public void getAllBudgets(Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        StringRequest getAllBudgetsRequest = new StringRequest(Request.Method.GET, budget_url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(getAllBudgetsRequest);
+    }
+
+    public void createBudget(Budget budget, Response.Listener<JSONObject> successListener, Response.ErrorListener errorListener){
+        JSONObject budgetObject = new JSONObject();
+        Date start_date, end_date;
+        String formattedStartDate, formattedEndDate;
+        try{
+            SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+            start_date = inputFormat.parse(budget.start_date);
+            end_date = inputFormat.parse(budget.end_date);
+            formattedStartDate = outputFormat.format(start_date);
+            formattedEndDate = outputFormat.format(end_date);
+            budgetObject.put("name", budget.name);
+            budgetObject.put("start_date", formattedStartDate);
+            budgetObject.put("end_date", formattedEndDate);
+            budgetObject.put("limit", budget.limit);
+            JsonObjectRequest createBudgetObjectRequest = new JsonObjectRequest(Request.Method.POST, budget_url, budgetObject, successListener, errorListener){
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + getStoredToken());
+                    return headers;
+                }
+            };
+            VolleySingleton.getInstance(context).addToRequestQueue(createBudgetObjectRequest);
+        } catch (Exception e){
+            e.printStackTrace();
+            errorListener.onErrorResponse(new VolleyError("JSON error"));
+        }
+    }
+
+    public void updateBudget(Budget budget, Response.Listener<JSONObject> successListener, Response.ErrorListener errorListener){
+        String url = budget_url + "?id=" + budget.id;
+        Date start_date, end_date;
+        String formattedStartDate, formattedEndDate;
+        JSONObject updatedBudgetObject = new JSONObject();
+        try{
+            SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+            start_date = inputFormat.parse(budget.start_date);
+            end_date = inputFormat.parse(budget.end_date);
+            formattedStartDate = outputFormat.format(start_date);
+            formattedEndDate = outputFormat.format(end_date);
+            updatedBudgetObject.put("name", budget.name);
+            updatedBudgetObject.put("start_date", formattedStartDate);
+            updatedBudgetObject.put("end_date", formattedEndDate);
+            updatedBudgetObject.put("limit", budget.limit);
+            JsonObjectRequest updateBudgetObjectRequest = new JsonObjectRequest(Request.Method.PUT, url, updatedBudgetObject, successListener, errorListener){
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + getStoredToken());
+                    return headers;
+                }
+            };
+            VolleySingleton.getInstance(context).addToRequestQueue(updateBudgetObjectRequest);
+        } catch (Exception e){
+            e.printStackTrace();
+            errorListener.onErrorResponse(new VolleyError("JSON error"));
+        }
+    }
+
+    public void deleteBudget(String id, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = budget_url + "?id=" + id;
+        StringRequest deleteBudgetRequest = new StringRequest(Request.Method.DELETE, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(deleteBudgetRequest);
+    }
+
+    public void getWalletData(String monthYear, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = wallet_url + "?date=" + monthYear;
+        StringRequest getWalletDataRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(getWalletDataRequest);
     }
 
     private String getStoredToken() {

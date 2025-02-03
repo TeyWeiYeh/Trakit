@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -102,7 +104,8 @@ public class AllTransactionsFragment extends Fragment {
     Spinner spinnerMonthYear;
     int currentYear, currentMonth;
     String monthName, selectedMonthYear;
-    Fragment currentFragment;
+    CheckBox Recurring;
+    Boolean isRecurring = false;
 
     public void onViewCreated(View view, Bundle savedInstanceState){
         SharedPreferences sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
@@ -110,6 +113,7 @@ public class AllTransactionsFragment extends Fragment {
         transTopAppBar = (MaterialToolbar) view.findViewById(R.id.topAppBar);
         transListView = (ListView) view.findViewById(R.id.transListView);
         spinnerMonthYear = (Spinner) view.findViewById(R.id.spinnerMonthYear);
+        Recurring = (CheckBox) view.findViewById(R.id.cbRecurrTrans);
         transactionController = new TransactionController(getContext());
         currentYear = Calendar.getInstance().get(Calendar.YEAR);
         currentMonth = Calendar.getInstance().get(Calendar.MONTH);
@@ -148,6 +152,7 @@ public class AllTransactionsFragment extends Fragment {
             }
         }
         selectedMonthYear = monthYearList.get(0);
+        Log.d("Month year", selectedMonthYear);
         transList();
 
         // Set up adapter for spinner
@@ -167,65 +172,132 @@ public class AllTransactionsFragment extends Fragment {
                 // Handle no selection if needed
             }
         });
+        Recurring.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                isRecurring = b;
+                transList();
+            }
+        });
     }
 
     public void transList(){
         ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
-        transactionController.getAllTransactions(selectedMonthYear, new ICallback() {
-            @Override
-            public void onSuccess(Object result) {
-                if (result == null){
-                    Toast.makeText(getContext(), "No data found", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                try{
-                    JSONArray transListArray = (JSONArray) result;
-                    for (int i=0; i<transListArray.length(); i++){
-                        JSONObject transaction = transListArray.getJSONObject(i);
-                        transId = transaction.getString("transactionId");
-                        transAmount = transaction.getString("amount");
-                        transDescription = transaction.getString("description");
-                        transDateCreated = transaction.getString("date_created");
-                        transDateUpdated = transaction.getString("date_updated");
-                        transDate = transaction.getString("trans_date");
-                        transRecurring = transaction.getString("recurring");
-                        transBudgetId = transaction.getString("budgetId");
-                        transUserId = transaction.getString("userId");
-                        transImage = transaction.getString("image");
-                        transCatId = transaction.getString("categoryId");
-                        transCatName = transaction.getString("categoryName");
-                        transCatType = transaction.getString("categoryType");
-                        HashMap<String, String> hashMap = new HashMap<>();
-                        hashMap.put("type", StringUtils.capitalizeFirstLetter(transCatType));
-                        hashMap.put("date", StringUtils.convertDateFormat(transDate));
-                        hashMap.put("catName", StringUtils.capitalizeFirstLetter(transCatName));
-                        hashMap.put("amount", transAmount);
-                        hashMap.put("typeIcon", "-");
-                        hashMap.put("desc", transDescription);
-                        hashMap.put("image", transImage);
-                        hashMap.put("id", transId);
-                        hashMap.put("recurring", transRecurring);
-                        arrayList.add(hashMap);
+        if (isRecurring){
+            transactionController.getAllRecurringTransactions(selectedMonthYear, true, new ICallback() {
+                @Override
+                public void onSuccess(Object result) {
+                    if (result == null){
+                        Toast.makeText(getContext(), "No data found", Toast.LENGTH_LONG).show();
+                        return;
                     }
-                    TransactionAdapter adapter = new TransactionAdapter(getContext(), arrayList, getParentFragmentManager());
-                    transListView.setAdapter(adapter);
-                } catch (JSONException e){
-                    e.printStackTrace();
-                    Toast.makeText(getContext(), "Error parsing category data", Toast.LENGTH_LONG).show();
+                    try{
+                        JSONArray transListArray = (JSONArray) result;
+                        for (int i=0; i<transListArray.length(); i++){
+                            JSONObject transaction = transListArray.getJSONObject(i);
+                            transId = transaction.getString("transactionId");
+                            transAmount = transaction.getString("amount");
+                            transDescription = transaction.getString("description");
+                            transDateCreated = transaction.getString("date_created");
+                            transDateUpdated = transaction.getString("date_updated");
+                            transDate = transaction.getString("trans_date");
+                            transRecurring = transaction.getString("recurring");
+                            transBudgetId = transaction.getString("budgetId");
+                            transUserId = transaction.getString("userId");
+                            transImage = transaction.getString("image");
+                            transCatId = transaction.getString("categoryId");
+                            transCatName = transaction.getString("categoryName");
+                            transCatType = transaction.getString("categoryType");
+                            HashMap<String, String> hashMap = new HashMap<>();
+                            hashMap.put("type", StringUtils.capitalizeFirstLetter(transCatType));
+                            hashMap.put("date", StringUtils.convertDateFormat(transDate));
+                            hashMap.put("catName", StringUtils.capitalizeFirstLetter(transCatName));
+                            hashMap.put("amount", transAmount);
+                            hashMap.put("typeIcon", "-");
+                            hashMap.put("desc", transDescription);
+                            hashMap.put("image", transImage);
+                            hashMap.put("id", transId);
+                            hashMap.put("recurring", transRecurring);
+                            arrayList.add(hashMap);
+                        }
+                        TransactionAdapter adapter = new TransactionAdapter(getContext(), arrayList, getParentFragmentManager());
+                        transListView.setAdapter(adapter);
+                    } catch (JSONException e){
+                        e.printStackTrace();
+                        Toast.makeText(getContext(), "Error parsing category data", Toast.LENGTH_LONG).show();
+                    }
                 }
-            }
 
-            @Override
-            public void onError(String error) {
-                Toast.makeText(getContext(), "Failed to retrieve data: " + error, Toast.LENGTH_LONG).show();
-            }
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(getContext(), "Failed to retrieve data: " + error, Toast.LENGTH_LONG).show();
+                }
 
-            @Override
-            public void onAuthFailure(String message) {
-                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
-                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(goToLoginPage);
-            }
-        });
+                @Override
+                public void onAuthFailure(String message) {
+                    Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
+                    goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(goToLoginPage);
+                }
+            });
+        }
+        else{
+            transactionController.getAllTransactions(selectedMonthYear, new ICallback() {
+                @Override
+                public void onSuccess(Object result) {
+                    if (result == null){
+                        Toast.makeText(getContext(), "No data found", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    try{
+                        JSONArray transListArray = (JSONArray) result;
+                        for (int i=0; i<transListArray.length(); i++){
+                            JSONObject transaction = transListArray.getJSONObject(i);
+                            transId = transaction.getString("transactionId");
+                            transAmount = transaction.getString("amount");
+                            transDescription = transaction.getString("description");
+                            transDateCreated = transaction.getString("date_created");
+                            transDateUpdated = transaction.getString("date_updated");
+                            transDate = transaction.getString("trans_date");
+                            transRecurring = transaction.getString("recurring");
+                            transBudgetId = transaction.getString("budgetId");
+                            transUserId = transaction.getString("userId");
+                            transImage = transaction.getString("image");
+                            transCatId = transaction.getString("categoryId");
+                            transCatName = transaction.getString("categoryName");
+                            transCatType = transaction.getString("categoryType");
+                            HashMap<String, String> hashMap = new HashMap<>();
+                            hashMap.put("type", StringUtils.capitalizeFirstLetter(transCatType));
+                            hashMap.put("date", StringUtils.convertDateFormat(transDate));
+                            hashMap.put("catName", StringUtils.capitalizeFirstLetter(transCatName));
+                            hashMap.put("amount", transAmount);
+                            hashMap.put("typeIcon", "-");
+                            hashMap.put("desc", transDescription);
+                            hashMap.put("image", transImage);
+                            hashMap.put("id", transId);
+                            hashMap.put("recurring", transRecurring);
+                            arrayList.add(hashMap);
+                        }
+                        TransactionAdapter adapter = new TransactionAdapter(getContext(), arrayList, getParentFragmentManager());
+                        transListView.setAdapter(adapter);
+                    } catch (JSONException e){
+                        e.printStackTrace();
+                        Toast.makeText(getContext(), "Error parsing category data", Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(getContext(), "Failed to retrieve data: " + error, Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onAuthFailure(String message) {
+                    Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
+                    goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(goToLoginPage);
+                }
+            });
+        }
     }
 }

@@ -63,6 +63,7 @@ public class TransactionAdapter extends BaseAdapter {
             holder.tvTransIcon = convertView.findViewById(R.id.tvTransIcon);
             holder.btnView = convertView.findViewById(R.id.btnView);
             holder.tvDescription = convertView.findViewById(R.id.tvViewDesc);
+            holder.tvRecurring = convertView.findViewById(R.id.tvRecurring);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -85,6 +86,9 @@ public class TransactionAdapter extends BaseAdapter {
             holder.tvType.setBackgroundResource(R.drawable.income_background);
             holder.tvTransIcon.setText("+");
         }
+
+        if (!Boolean.parseBoolean(item.get("recurring")))
+            holder.tvRecurring.setVisibility(View.GONE);
 
         String type = item.get("type");
         String date = item.get("date");
@@ -129,7 +133,7 @@ public class TransactionAdapter extends BaseAdapter {
     }
 
     private static class ViewHolder {
-        TextView tvType, tvDate, tvCategory, tvAmount, tvTransIcon, tvDescription;
+        TextView tvType, tvDate, tvCategory, tvAmount, tvTransIcon, tvDescription, tvRecurring;
         Button btnView;
 
 

@@ -29,7 +29,6 @@ public class TransactionController {
             try{
                 JSONObject responseObject = new JSONObject(response);
                 JSONArray dataArray = new JSONArray(responseObject.optString("data"));
-                Log.d("count of array", String.valueOf(dataArray.length()));
                 callback.onSuccess(dataArray);
             } catch (JSONException e){
                 e.printStackTrace();
@@ -92,6 +91,25 @@ public class TransactionController {
                 callback.onAuthFailure("Authentication failed. Please login again");
             else
                 callback.onError("Failed to retrieve transactions");
+        });
+    }
+
+    public void getAllRecurringTransactions(String monthYear, Boolean recurring, ICallback callback){
+        String formattedMonthYear = DateUtils.convertToYearMonth(monthYear);
+        apiController.getAllRecurringTransactions(formattedMonthYear, recurring, response -> {
+            try{
+                JSONObject responseObject = new JSONObject(response);
+                JSONArray dataArray = new JSONArray(responseObject.optString("data"));
+                callback.onSuccess(dataArray);
+            } catch (JSONException e){
+                e.printStackTrace();
+                Toast.makeText(context, "Response error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }, error -> {
+            if (error instanceof AuthFailureError)
+                callback.onAuthFailure("Authentication failed. Please login again");
+            else
+                callback.onError("Failed to retrieve transactions" + error.toString());
         });
     }
 }

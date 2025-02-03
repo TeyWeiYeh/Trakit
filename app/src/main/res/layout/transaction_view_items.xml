@@ -25,6 +25,17 @@
             android:text="Income"
             android:textColor="#1B5E20" />
 
+        <TextView
+            android:id="@+id/tvRecurring"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/recurring_background"
+            android:paddingVertical="4dp"
+            android:paddingHorizontal="12dp"
+            android:layout_marginLeft="8dp"
+            android:text="Recurring"
+            android:textColor="#1a6675" />
+
         <!-- Space between Income and Date -->
         <View
             android:layout_width="0dp"

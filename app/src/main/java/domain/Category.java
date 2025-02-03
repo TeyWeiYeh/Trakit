@@ -19,7 +19,6 @@ public class Category {
     }
 
     public Category(String name, Type type){
-        this.id = id;
         this.name = name;
         this.type = type;
     }

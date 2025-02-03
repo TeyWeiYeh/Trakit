@@ -27,51 +27,53 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center"
+            android:orientation="horizontal"
             android:padding="12dp">
+
             <ImageButton
-                android:id="@+id/btnPrevYear"
+                android:id="@+id/btnPrevMonth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:src="@drawable/arrow_left_24"
-            android:contentDescription="Previous Year" />
+                android:contentDescription="Previous Year"
+                android:src="@drawable/arrow_left_24" />
 
             <!-- Year Text -->
             <TextView
-                android:id="@+id/tvYear"
+                android:id="@+id/tvMonth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2025"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
                 android:layout_marginHorizontal="16dp"
-                android:gravity="center" />
+                android:gravity="center"
+                android:text="2025"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <!-- Right Arrow -->
             <ImageButton
-                android:id="@+id/btnNextYear"
+                android:id="@+id/btnNextMonth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:src="@drawable/arrow_right_24"
-            android:contentDescription="Next Year" />
+                android:contentDescription="Next Year"
+                android:src="@drawable/arrow_right_24" />
         </LinearLayout>
 
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/lineChart"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="230dp"
             android:layout_marginVertical="8dp" />
 
         <com.github.mikephil.charting.charts.PieChart
             android:id="@+id/pieChart"
             android:layout_width="match_parent"
-            android:layout_height="250dp">
+            android:layout_height="230dp">
 
         </com.github.mikephil.charting.charts.PieChart>
+
     </LinearLayout>
 
 </FrameLayout>

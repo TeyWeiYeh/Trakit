@@ -1,24 +1,38 @@
 package workers;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+
+import com.opencsv.CSVWriter;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import data.network.ICallback;
 import data.network.controller.TransactionController;
 import domain.Transaction;
+import helpers.NotificationHelper;
+import mdad.localdata.trakit.R;
 
 public class RecurringBillWorker extends Worker {
 
@@ -27,6 +41,7 @@ public class RecurringBillWorker extends Worker {
     private final String formattedCurrDate;
     private int totalTransactions;
     private int processedTransactions;
+    private JSONArray transListArray;
 
     public RecurringBillWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -41,98 +56,118 @@ public class RecurringBillWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        // Use CountDownLatch to wait for the async call to complete
         final CountDownLatch latch = new CountDownLatch(1);
-        final Result[] workerResult = {Result.success()}; // Default to success
+        final Result[] workerResult = {Result.success()};
+        totalTransactions = 0; // Initialize to 0
 
-        // Call API to get all transactions by date
         transactionController.getAllTransactionsByDate(formattedDate, new ICallback() {
             @Override
             public void onSuccess(Object result) {
                 try {
-                    JSONArray transListArray = (JSONArray) result;
-                    totalTransactions = transListArray.length(); // Track the total number of transactions
-                    processedTransactions = 0; // Initialize processed counter
+                    transListArray = (JSONArray) result;
+                    totalTransactions = transListArray.length();
+                    if (transListArray.length() == 0) {
+                        workerResult[0] = Result.success();
+                        latch.countDown();
+                        return;
+                    }
+
+                    processedTransactions = 0;
 
                     for (int i = 0; i < transListArray.length(); i++) {
                         JSONObject transaction = transListArray.getJSONObject(i);
-                        String transId = transaction.getString("transactionId");
-                        String transAmount = transaction.getString("amount");
-                        String transDescription = transaction.getString("description");
-                        String transDateCreated = transaction.getString("date_created");
-                        String transDateUpdated = transaction.getString("date_updated");
-                        String transDate = transaction.getString("trans_date");
-                        String transRecurring = transaction.getString("recurring");
-                        String transBudgetId = transaction.getString("budgetId");
-                        String transUserId = transaction.getString("userId");
-                        String transImage = transaction.getString("image");
-                        String transCatId = transaction.getString("categoryId");
-                        String transCatName = transaction.getString("categoryName");
-                        String transCatType = transaction.getString("categoryType");
+                        // Extract transaction details
+                        Transaction newTransaction = new Transaction(
+                                Float.parseFloat(transaction.getString("amount")),
+                                transaction.getString("description"),
+                                formattedCurrDate,
+                                false,
+                                transaction.getString("categoryId"),
+                                transaction.getString("image")
+                        );
 
-                        Transaction newTransaction = new Transaction(Float.parseFloat(transAmount), transDescription, formattedCurrDate, false, transCatId, transImage);
                         transactionController.createTransaction(newTransaction, new ICallback() {
                             @Override
                             public void onSuccess(Object result) {
-                                Log.d("Recurring success", (String) result + formattedCurrDate);
-
-                                processedTransactions++; // Increment the processed counter
+                                processedTransactions++;
                                 if (processedTransactions == totalTransactions) {
-                                    workerResult[0] = Result.success(); // All transactions processed successfully
+                                    workerResult[0] = Result.success();
+                                    Log.d("transList", String.valueOf(transListArray));
                                     latch.countDown();
                                 }
                             }
 
                             @Override
                             public void onError(String error) {
-                                workerResult[0] = Result.failure(); // Mark as failure on error
+                                workerResult[0] = Result.failure();
                                 latch.countDown();
                             }
 
                             @Override
                             public void onAuthFailure(String message) {
-                                workerResult[0] = Result.failure(); // Mark as failure on auth failure
+                                workerResult[0] = Result.failure();
                                 latch.countDown();
                             }
                         });
                     }
 
-                    // If no transactions to process, immediately complete the work
-                    if (totalTransactions == 0) {
-                        workerResult[0] = Result.success();
-                        latch.countDown();
-                    }
-
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    workerResult[0] = Result.failure(); // Mark as failure on exception
+                    workerResult[0] = Result.failure();
                     latch.countDown();
                 }
             }
 
             @Override
             public void onError(String error) {
-                Log.e("RecurringBillWorker", "Error: " + error);
-                workerResult[0] = Result.failure(); // Mark as failure on error
-                latch.countDown(); // Signal that the work is done
+                workerResult[0] = Result.failure();
+                latch.countDown();
             }
 
             @Override
             public void onAuthFailure(String message) {
-                Log.e("RecurringBillWorker", "Auth Failure: " + message);
-                workerResult[0] = Result.failure(); // Mark as failure on auth failure
-                latch.countDown(); // Signal that the work is done
+                workerResult[0] = Result.failure();
+                latch.countDown();
             }
         });
 
         try {
-            latch.await(); // Block until callback is called
+            latch.await();
         } catch (InterruptedException e) {
-            e.printStackTrace();
-            return Result.retry(); // Retry if interrupted
+            return Result.retry();
         }
 
-        // Return the final result after the async task completes
+        // Send notification only if successful and transactions were processed
+        if (Objects.equals(workerResult[0], Result.success()) && transListArray.length() > 0) {
+            NotificationHelper.sendNotification(
+                    getApplicationContext(),
+                    "Recurring Bills Added",
+                    "Your recurring bills have been added successfully."
+            );
+        }
+
         return workerResult[0];
+    }
+
+    private void exportcsv(){
+        Date currentTime = Calendar.getInstance().getTime();
+        String fileName = "my_data.csv";
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+        try (FileWriter fileWriter = new FileWriter(file);
+             CSVWriter csvWriter = new CSVWriter(fileWriter)) { // Use Apache Commons CSV or OpenCSV
+
+            // Sample Data - Replace with actual data
+            String[] header = {"ID", "Name", "Age"};
+            String[] row1 = {"1", "Alice", "24"};
+            String[] row2 = {"2", "Bob", "30"};
+
+            csvWriter.writeNext(header);
+            csvWriter.writeNext(row1);
+            csvWriter.writeNext(row2);
+
+            Toast.makeText(getApplicationContext(), "CSV Exported: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "Error exporting CSV", Toast.LENGTH_SHORT).show();
+        }
     }
 }

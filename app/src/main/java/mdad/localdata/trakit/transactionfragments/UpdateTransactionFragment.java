@@ -156,6 +156,7 @@ public class UpdateTransactionFragment extends Fragment {
         base64Img = retrieveInfo.getString("base64Img");
         recurring = retrieveInfo.getString("recurring");
         boolRecc = Boolean.parseBoolean(recurring);
+        Log.d("Bundle Recurring", recurring);
 
         etUpdateDate = view.findViewById(R.id.etUpdateDate);
         etUpdateAmount = view.findViewById(R.id.etUpdateAmount);
@@ -253,6 +254,27 @@ public class UpdateTransactionFragment extends Fragment {
                     .setIcon(ContextCompat.getDrawable(getContext(), R.drawable.warning_icon))
                     .show();
         });
+        btnUpdateImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showImageSourceDialog();
+            }
+        });
+        btnViewImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showFullScreenDialog();
+            }
+        });
+        btnRecurring.setOnClickListener(v -> {
+            boolRecc = !boolRecc;
+            if (boolRecc) {
+                btnRecurring.setColorFilter(ContextCompat.getColor(getContext(), R.color.save));
+            } else {
+                btnRecurring.setColorFilter(ContextCompat.getColor(getContext(), R.color.recurring));
+            }
+            Log.d("Recurring Status", "boolRecc: " + boolRecc);
+        });
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -273,38 +295,14 @@ public class UpdateTransactionFragment extends Fragment {
                     Toast.makeText(getContext(),"Please fill in all fields", Toast.LENGTH_LONG).show();
                 }
                 else{
-                    Log.d("recurring value ", String.valueOf(recurring));
                     Transaction updatedTransObject = new Transaction(id, Float.parseFloat(newAmount), newDesc, newTransDate, boolRecc, newCatId, updateBase64Img);
 //                    Log.d("Update Trans", String.valueOf(updatedTransObject.id));
 //                    Log.d("Update Trans", String.valueOf(updatedTransObject.amount));
 //                    Log.d("Update Trans", String.valueOf(updatedTransObject.description));
 //                    Log.d("Update Trans", String.valueOf(updatedTransObject.transDate));
-                    Log.d("Update Trans", String.valueOf(updatedTransObject.isRecurring()));
+//                    Log.d("Update Trans", String.valueOf(updatedTransObject.recurring));
 //                    Log.d("Update Trans", String.valueOf(updatedTransObject.categoryId));
                     updateTransaction(updatedTransObject);
-                }
-            }
-        });
-        btnUpdateImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showImageSourceDialog();
-            }
-        });
-        btnViewImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showFullScreenDialog();
-            }
-        });
-        btnRecurring.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolRecc = !boolRecc;
-                if (boolRecc){
-                    btnRecurring.setColorFilter(ContextCompat.getColor(getContext(),R.color.save));
-                } else{
-                    btnRecurring.setColorFilter(ContextCompat.getColor(getContext(),R.color.recurring));
                 }
             }
         });

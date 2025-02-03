@@ -142,15 +142,12 @@ public class CategoryFragment extends Fragment {
             public boolean onMenuItemClick(MenuItem menuItem) {
                 int itemId = menuItem.getItemId();
                 if (itemId == R.id.action_profile) {
-                    // Navigate to profile
                     Intent goToProfilePage = new Intent(getContext(), ProfileActivity.class);
                     startActivity(goToProfilePage);
                     return true;
                 } else if (itemId == R.id.action_logout) {
-                    // Logout logic
                     sharedPreferences.edit().putString("token",null).apply();
                     Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
-                    //clears the stack
                     goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(goToLoginPage);
                     return true;

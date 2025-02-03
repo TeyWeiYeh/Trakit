@@ -1,7 +1,10 @@
 package utils;
 
 import java.text.DateFormatSymbols;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class DateUtils {
@@ -30,6 +33,15 @@ public class DateUtils {
             return year + "-" + numericMonth;
         } else {
             throw new IllegalArgumentException("Invalid month name: " + month);
+        }
+    }
+
+    public static String getShortMonth(String fullMonth) {
+        try {
+            Date date = new SimpleDateFormat("MMMM", Locale.ENGLISH).parse(fullMonth);
+            return new SimpleDateFormat("MMM", Locale.ENGLISH).format(date);
+        } catch (Exception e) {
+            return "Invalid Month";
         }
     }
 }
