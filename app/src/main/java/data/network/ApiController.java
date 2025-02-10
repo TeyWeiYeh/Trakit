@@ -17,6 +17,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
@@ -27,9 +28,11 @@ import java.util.UUID;
 
 import domain.Budget;
 import domain.Category;
+import domain.MonthlyReport;
 import domain.Transaction;
 import domain.User;
 import mdad.localdata.trakit.MainActivity;
+import utils.FileUtils;
 
 public class ApiController {
     private final Context context;
@@ -43,6 +46,7 @@ public class ApiController {
     String trans_url = MainActivity.ipBaseUrl + "/transaction.php";
     String budget_url = MainActivity.ipBaseUrl + "/budget.php";
     String wallet_url = MainActivity.ipBaseUrl + "/wallet.php";
+    String monthlyReport_url = MainActivity.ipBaseUrl + "/monthlyReport.php";
 
     //User API's
     public void getUserDetails(String id, Response.Listener<String> successListener, Response.ErrorListener errorListener){
@@ -247,6 +251,19 @@ public class ApiController {
         VolleySingleton.getInstance(context).addToRequestQueue(deleteTransRequest);
     }
 
+    public void getTransactionsByCatId(String catId, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = trans_url + "?transactions_for=" + catId;
+        StringRequest getTransForCatRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(getTransForCatRequest);
+    }
+
     public void getAllTransactionsByDate(String day, Response.Listener<String> successListener, Response.ErrorListener errorListener){
         String url = trans_url + "?day=" + day;
         StringRequest getRecurringTransRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
@@ -396,6 +413,53 @@ public class ApiController {
             }
         };
         VolleySingleton.getInstance(context).addToRequestQueue(getWalletDataRequest);
+    }
+
+    public void getMonthlyReportData(String monthYear, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = monthlyReport_url + "?date=" + monthYear;
+        StringRequest getMonthlyReportRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(getMonthlyReportRequest);
+    }
+
+    public void getAllReports(Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        StringRequest getALlReportsRequest = new StringRequest(Request.Method.GET, monthlyReport_url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(getALlReportsRequest);
+    }
+
+    public void createMonthlyReport(MonthlyReport report, Response.Listener<JSONObject> successListener, Response.ErrorListener errorListener){
+        JSONObject reportObject = new JSONObject();
+        String base64ExcelFile = FileUtils.encodeFileToBase64(report.excelFile);
+        try{
+            reportObject.put("date", report.monthYear);
+            reportObject.put("base64file", base64ExcelFile);
+            reportObject.put("name", report.name);
+            JsonObjectRequest reportObjectRequest = new JsonObjectRequest(Request.Method.POST, monthlyReport_url, reportObject, successListener, errorListener){
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + getStoredToken());
+                    return headers;
+                }
+            };
+            VolleySingleton.getInstance(context).addToRequestQueue(reportObjectRequest);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     private String getStoredToken() {

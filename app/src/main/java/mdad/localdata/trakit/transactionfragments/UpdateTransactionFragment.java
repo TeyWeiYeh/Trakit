@@ -18,16 +18,13 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -46,12 +43,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -62,7 +57,6 @@ import data.network.controller.TransactionController;
 import domain.Category;
 import domain.Transaction;
 import mdad.localdata.trakit.AuthActivity;
-import mdad.localdata.trakit.ProfileActivity;
 import mdad.localdata.trakit.R;
 import utils.ImageUtils;
 
@@ -165,7 +159,7 @@ public class UpdateTransactionFragment extends Fragment {
         radioGroup = view.findViewById(R.id.radioGroup);
         expenseButton = view.findViewById(R.id.expenseButton);
         incomeButton = view.findViewById(R.id.incomeButton);
-        btnCancel = view.findViewById(R.id.btnUpdateCancel);
+        btnCancel = view.findViewById(R.id.btnUpdateDelete);
         btnUpdate = view.findViewById(R.id.btnUpdateUpdate);
         btnUpdateImage = view.findViewById(R.id.btnUpdateImage);
         btnViewImage = view.findViewById(R.id.btnViewImage);

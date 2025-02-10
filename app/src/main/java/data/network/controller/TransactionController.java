@@ -112,4 +112,22 @@ public class TransactionController {
                 callback.onError("Failed to retrieve transactions" + error.toString());
         });
     }
+
+    public void getTransactionsByCatId(String catId, ICallback callback){
+        apiController.getTransactionsByCatId(catId, response-> {
+            try{
+                JSONObject responseObject = new JSONObject(response);
+                JSONObject dataObject = new JSONObject(responseObject.optString("data"));
+                callback.onSuccess(dataObject);
+            } catch (JSONException e){
+                e.printStackTrace();
+                Toast.makeText(context, "Response error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }, error-> {
+            if (error instanceof AuthFailureError)
+                callback.onAuthFailure("Authentication failed. Please login again");
+            else
+                callback.onError("Failed to retrieve transactions" + error.toString());
+        });
+    }
 }

@@ -30,10 +30,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
-import com.opencsv.exceptions.CsvException;
-
 import data.network.ApiController;
 import data.network.ICallback;
 import data.network.controller.TransactionController;
@@ -114,46 +110,8 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
-    Button btnExportCSV, btnReadCSV, btnAddBudget;
-    EditText etQuery;
-    TextView tvResponse, tvIncome, tvExpense, tvExpenseIcon, tvBalance;
-    private final String url = "https://api.deepseek.com/chat/completions";
-    ArrayList<Map<String,String>> chat;
-    JSONArray contentArray = new JSONArray();
-    ApiController apiController;
-    TransactionController transactionController;
-    String transDate, transCategory, transAmount;
+
     public void onViewCreated(View view, Bundle savedInstanceState){
-        transactionController = new TransactionController(getContext());
-//        btnExportCSV = view.findViewById(R.id.btnExportCSV);
-//        btnReadCSV = view.findViewById(R.id.btnReadCSV);
-//        btnAddBudget = view.findViewById(R.id.btnAddBudget);
-//        tvIncome = view.findViewById(R.id.tvIncome);
-//        tvExpense = view.findViewById(R.id.tvExpense);
-//        tvBalance = view.findViewById(R.id.tvBalance);
-//        btnAddBudget.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Fragment createBudgetFragment = new CreateNewBudgetFragment();
-//                FragmentManager fm = getChildFragmentManager();
-//                fm.beginTransaction().replace(getContext(), createBudgetFragment).commit();
-//            }
-//        });
-//        btnExportCSV.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                if (checkSelfPermission(requireContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//                    requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-//                }
-//                printMonthlyStatement();
-//            }
-//        });
-//        btnReadCSV.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                readDataLineByLine("jan_report.csv");
-//            }
-//        });
         requestNotificationPermission();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
             if (checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS)
@@ -162,10 +120,12 @@ public class HomeFragment extends Fragment {
                         new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
             }
         }
+        NotificationHelper.createNotificationChannel(requireContext());
         PeriodicWorkRequest fetchRecurringBills = new PeriodicWorkRequest.Builder(
                 RecurringBillWorker.class,
-                1, TimeUnit.DAYS,  // Repeat every 1 day
-                1, TimeUnit.HOURS  // Allow 1-hour flex time
+                15, TimeUnit.MINUTES
+//                1, TimeUnit.DAYS,  // Repeat every 1 day
+//                1, TimeUnit.HOURS  // Allow 1-hour flex time
         ).build();
         WorkManager.getInstance(getContext()).enqueueUniquePeriodicWork(
                 "RecurringBillWorker", // Unique name for the worker
@@ -200,169 +160,4 @@ public class HomeFragment extends Fragment {
             }
         }
     }
-
-    private void exportcsv(){
-        Date currentTime = Calendar.getInstance().getTime();
-        String fileName = "jan_report.csv";
-        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
-        try (FileWriter fileWriter = new FileWriter(file);
-             CSVWriter csvWriter = new CSVWriter(fileWriter)) {
-
-            // Sample Data - Replace with actual data
-            String[] header = {"Date", "Category", "Amount"};
-            String[] row1 = {"1", "Alice", "24"};
-            String[] row2 = {"2", "Bob", "30"};
-
-            csvWriter.writeNext(header);
-            csvWriter.writeNext(row1);
-            csvWriter.writeNext(row2);
-
-            Toast.makeText(getContext(), "CSV Exported: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(getContext(), "Error exporting CSV", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public static void readDataLineByLine(String fileName){
-        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
-        try (CSVReader csvReader = new CSVReader(new FileReader(file))) {
-            List<String[]> data = csvReader.readAll();
-
-            StringBuilder csvContent = new StringBuilder();
-            for (String[] row : data) {
-                csvContent.append(Arrays.toString(row)).append("\n");
-            }
-            Log.d("csv content", String.valueOf(csvContent));
-
-        } catch (IOException | CsvException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void getWalletData(String monthYear){
-
-    }
-
-    public void printMonthlyStatement(){
-        Calendar calendar = Calendar.getInstance();
-
-        // Define the format: "MMMM yyyy" (Month name and year)
-        SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy", java.util.Locale.ENGLISH);
-
-        // Format the current date
-        String formattedDate = sdf.format(calendar.getTime());
-        transactionController.getAllTransactions(formattedDate, new ICallback() {
-            @Override
-            public void onSuccess(Object result) {
-                if (result == null){
-                    Toast.makeText(getContext(), "No data found", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                try{
-                    JSONArray transListArray = (JSONArray) result;
-                    String[] headers = {"Date", "Category", "Amount"};
-                    String[] date = new String[transListArray.length()];
-                    String[] cat = new String[transListArray.length()];
-                    String[] amt = new String[transListArray.length()];
-                    for (int i=0; i<transListArray.length(); i++) {
-                        JSONObject transaction = transListArray.getJSONObject(i);
-                        transDate = transaction.getString("trans_date");
-                        transCategory = transaction.getString("categoryName");
-                        transAmount = transaction.getString("amount");
-                        date[i] = transDate;
-                        cat[i] = transCategory;
-                        amt[i] = transAmount;
-                    }
-                    String fileName = "jan_report.csv";
-                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
-                    FileWriter fileWriter = new FileWriter(file);
-                    CSVWriter csvWriter = new CSVWriter(fileWriter);
-                    csvWriter.writeNext(headers);
-                    csvWriter.writeNext(cat);
-                    csvWriter.writeNext(amt);
-                    fileWriter.close();
-
-                    Toast.makeText(getContext(), "CSV Exported: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onAuthFailure(String message) {
-                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
-                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(goToLoginPage);
-            }
-        });
-    }
-
-
-//    private void getResponse(String query){
-//
-//        RequestQueue requestQueue = VolleySingleton.getInstance(getContext()).getRequestQueue();
-//        JSONObject jsonObject = new JSONObject();
-//        try {
-//            JSONObject userQuery = new JSONObject();
-//            userQuery.put("role", "user");
-//            userQuery.put("content", query);
-//            contentArray.put(userQuery);
-//            // Adding params to JSON object
-//            jsonObject.put("model", "deepseek-chat");
-//            jsonObject.put("messages", contentArray);
-//            jsonObject.put("temperature", 1.3);
-//            jsonObject.put("max_tokens", 20);
-//            Log.d("json", String.valueOf(contentArray));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObject, new Response.Listener<JSONObject>() {
-//            @Override
-//            public void onResponse(JSONObject response) {
-//                try {
-//                    String responseMsg = response
-//                            .getJSONArray("choices")
-//                            .getJSONObject(0)
-//                            .getJSONObject("message")
-//                            .getString("content");
-//                    String role = response
-//                            .getJSONArray("choices")
-//                            .getJSONObject(0)
-//                            .getJSONObject("message")
-//                            .getString("role");
-//                    JSONObject respObj = new JSONObject();
-//                    respObj.put("role", role);
-//                    respObj.put("content", responseMsg);
-//                    Log.d("Response", responseMsg);
-//                    contentArray.put(respObj);
-//                    Log.d("chat", String.valueOf(contentArray));
-//                    tvResponse.setText(responseMsg);
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Log.e("TAGAPI", "Error is : " + error.getMessage() + "\n" + error);
-//            }
-//        }){
-//            public Map<String, String> getHeaders() {
-//                Map<String, String> params = new HashMap<>();
-//                // Adding headers
-//                params.put("Content-Type", "application/json");
-//                params.put("Accept", "application/json");
-//                params.put("Authorization", "Bearer sk-e0760c05d9c34feb9328b07be245d500");
-//                return params;
-//            }
-//        };
-//        requestQueue.add(jsonObjectRequest);
-//    }
 }

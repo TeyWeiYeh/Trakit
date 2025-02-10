@@ -1,6 +1,8 @@
 package mdad.localdata.trakit.mainfragments;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -9,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -19,6 +22,7 @@ import data.network.ICallback;
 import data.network.controller.ChartController;
 import formatter.LineChartXAxisValueFormatter;
 import mdad.localdata.trakit.AuthActivity;
+import mdad.localdata.trakit.ProfileActivity;
 import mdad.localdata.trakit.R;
 
 import com.github.mikephil.charting.animation.Easing;
@@ -38,6 +42,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.google.android.material.appbar.MaterialToolbar;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -115,6 +120,9 @@ public class ChartFragment extends Fragment {
     String[] labels = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     int[] colorArray = {Color.GREEN, Color.RED};
     String[] legendName = {"Income", "Expense"};
+    MaterialToolbar topAppBar;
+    SharedPreferences sharedPreferences;
+    String token;
 
     public void onViewCreated(View view, Bundle savedInstanceState){
         int[] pieChartColorArray = {ContextCompat.getColor(getContext(), R.color.pastel_red), ContextCompat.getColor(getContext(), R.color.pastel_blue), ContextCompat.getColor(getContext(), R.color.pastel_yellow),ContextCompat.getColor(getContext(), R.color.pastel_purple),ContextCompat.getColor(getContext(), R.color.pastel_green)};
@@ -124,17 +132,12 @@ public class ChartFragment extends Fragment {
         tvYear = view.findViewById(R.id.tvMonth);
         btnPrevYear = view.findViewById(R.id.btnPrevMonth);
         btnNextYear = view.findViewById(R.id.btnNextMonth);
+        topAppBar = view.findViewById(R.id.topAppBar);
         currYear = Calendar.getInstance().get(Calendar.YEAR);
         tvYear.setText(String.valueOf(currYear));
+        sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+        token = sharedPreferences.getString("token", null);
         getChartData(String.valueOf(currYear), pieChartColorArray);
-
-
-//        pieChartValues = new ArrayList<>();
-//        pieChartValues.add(new PieEntry(15,"Food"));
-//        pieChartValues.add(new PieEntry(8,"Trans"));
-//        pieChartValues.add(new PieEntry(22,"Entertainment"));
-//        pieChartValues.add(new PieEntry(30,"Bills"));
-//        pieChartValues.add(new PieEntry(18,"Custom"));
 
         btnPrevYear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,6 +153,24 @@ public class ChartFragment extends Fragment {
                 currYear++;
                 tvYear.setText(String.valueOf(currYear));
                 getChartData(String.valueOf(currYear),pieChartColorArray);
+            }
+        });
+        topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                int itemId = menuItem.getItemId();
+                if (itemId == R.id.action_profile) {
+                    Intent goToProfilePage = new Intent(getContext(), ProfileActivity.class);
+                    startActivity(goToProfilePage);
+                    return true;
+                } else if (itemId == R.id.action_logout) {
+                    sharedPreferences.edit().putString("token",null).apply();
+                    Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
+                    goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(goToLoginPage);
+                    return true;
+                } else
+                    return false;
             }
         });
     }
@@ -331,8 +352,7 @@ public class ChartFragment extends Fragment {
                                 pieChart.setCenterText("Top 5 categories");
                             }
                         });
-//
-//                    Log.d("result", String.valueOf(dataObject));
+
                     }catch (Exception e){
                         e.printStackTrace();
                         Toast.makeText(getContext(), "JSON error: "+ e.getMessage(), Toast.LENGTH_LONG).show();

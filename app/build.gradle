@@ -48,6 +48,5 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation "androidx.work:work-runtime-ktx:2.8.1"
     implementation 'androidx.core:core:1.10.1'
-    implementation 'com.opencsv:opencsv:5.7.1'
-    implementation 'org.apache.commons:commons-lang3:3.12.0' // Add this line
+    implementation 'org.apache.poi:poi:5.0.0'
 }

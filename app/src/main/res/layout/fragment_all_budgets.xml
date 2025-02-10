@@ -13,8 +13,9 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
             android:layout_width="0dp"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="wrap_content"
             android:background="@color/base"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -22,32 +23,31 @@
             app:title="@string/home_top_navbar"
             app:titleTextColor="@color/white" />
 
-                <LinearLayout
-                    android:id="@+id/linearLayout"
-                    android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/topAppBar">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnPrevMonth"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="16dp"
-                    android:paddingTop="16dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/topAppBar">
+                    android:background="@android:color/transparent"
+                    android:contentDescription="Previous Year"
+                    android:src="@drawable/arrow_left_24" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <ImageButton
-                            android:id="@+id/btnPrevMonth"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@android:color/transparent"
-                            android:contentDescription="Previous Year"
-                            android:src="@drawable/arrow_left_24" />
-
-                        <!-- Year Text -->
                 <TextView
                     android:id="@+id/tvMonth"
                     android:layout_width="wrap_content"
@@ -59,7 +59,6 @@
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
-                <!-- Right Arrow -->
                 <ImageButton
                     android:id="@+id/btnNextMonth"
                     android:layout_width="wrap_content"
@@ -78,13 +77,11 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/wallet_background"
                 android:backgroundTint="#E3E7F4"
-                android:backgroundTintMode="src_in"
                 android:clipToOutline="true"
                 android:elevation="4dp"
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Title -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -94,7 +91,6 @@
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <!-- Income -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -129,7 +125,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Expense -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -174,7 +169,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Balance -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -197,7 +191,7 @@
                         android:textColor="#00A300"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:visibility="gone"/>
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/tvBalanceDollar"
@@ -236,8 +230,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="8dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/tvBudget"
@@ -254,7 +248,6 @@
                     android:layout_height="wrap_content"
                     android:background="#00000000"
                     android:gravity="center"
-                    android:paddingLeft="0dp"
                     android:text="@string/create_new_cat"
                     android:textColor="@color/base"
                     app:icon="@drawable/add"
@@ -265,35 +258,38 @@
                 android:id="@+id/rvAllBudgets"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:clipToPadding="false"
-                android:paddingEnd="40dp"
+                android:orientation="horizontal"
+                android:overScrollMode="never"
                 android:paddingStart="10dp"
-                android:overScrollMode="never"/>
+                android:paddingEnd="40dp" />
 
         </LinearLayout>
 
-
-        <Button
-            android:id="@+id/btnReadCSV"
+        <TextView
+            android:id="@+id/tvstatements"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="108dp"
-            android:layout_marginTop="16dp"
-            android:text="ReadCSV"
-            app:layout_constraintStart_toEndOf="@+id/btnExportCSV"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
-
-        <Button
-            android:id="@+id/btnExportCSV"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="17dp"
-            android:text="Export CSV"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:text="Monthly Statements"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
 
+        <ListView
+            android:id="@+id/lvMonthlyStatement"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            tools:listitem="@layout/statement_list_view"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvstatements"
+            app:layout_constraintBottom_toBottomOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </FrameLayout>

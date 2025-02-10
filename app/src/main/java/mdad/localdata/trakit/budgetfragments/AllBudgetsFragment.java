@@ -1,18 +1,30 @@
 package mdad.localdata.trakit.budgetfragments;
 
+import static androidx.core.content.ContextCompat.getSystemService;
 import static utils.DateUtils.getShortMonth;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Environment;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -21,29 +33,51 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.time.Year;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import adapters.BudgetAdapter;
 import data.network.ApiController;
 import data.network.ICallback;
 import data.network.controller.BudgetController;
+import data.network.controller.MonthlyReportController;
 import data.network.controller.TransactionController;
 import data.network.controller.WalletController;
+import domain.MonthlyReport;
 import mdad.localdata.trakit.AuthActivity;
 import mdad.localdata.trakit.ProfileActivity;
 import mdad.localdata.trakit.R;
+import utils.FileUtils;
+import utils.StringUtils;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -100,30 +134,40 @@ public class AllBudgetsFragment extends Fragment {
     }
 
     WalletController walletController;
-    String token, selectedMonthYear, income, expense, balance, budgetId, budgetName, budgetSD, budgetED, budgetLimit, budgetUID, budgetExp, budgetInc, budgetBal;
-    Button btnExportCSV, btnReadCSV, btnAddBudget;
+    MonthlyReportController monthlyReportController;
+    String token, selectedMonthYear, income, expense, balance, budgetId, budgetName, budgetSD, budgetED, budgetLimit, budgetUID, budgetExp, budgetInc, budgetBal, id, file, userId, name, reportMonth;
+    Button btnAddBudget;
     ImageButton btnPrevMonth, btnNextMonth;
     TextView tvIncome, tvExpense, tvBalance, tvMonth, tvBalanceMinusIcon;
     RecyclerView rvAllBudgets;
     BudgetController budgetController;
     MaterialToolbar topAppBar;
     SharedPreferences sharedPreferences;
+    JSONArray dataReponse;
     String[] months = {
             "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"
     };
+    Calendar c = Calendar.getInstance();
+    int year = c.get(Calendar.YEAR);
+    int month = c.get(Calendar.MONTH) + 1;
 
     int currentYear = Year.now().getValue();
-    int currentIndex = 0;
+    int currentIndex = month -1;
+    String monthYearSql = year + "-" + String.format("%02d", month);
+    HSSFWorkbook workbook;
+    MonthlyReport monthlyReport;
+    ListView lvMonthlyStatement;
+    String workbookName = monthYearSql +"-"+ "report";
+    private static final int PERMISSION_REQUEST_CODE = 100;
 
     public void onViewCreated(View view, Bundle savedInstanceState){
         walletController = new WalletController(getContext());
         budgetController = new BudgetController(getContext());
+        monthlyReportController = new MonthlyReportController(getContext());
         topAppBar = view.findViewById(R.id.topAppBar);
         sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         token = sharedPreferences.getString("token", null);
-        btnExportCSV = view.findViewById(R.id.btnExportCSV);
-        btnReadCSV = view.findViewById(R.id.btnReadCSV);
         btnAddBudget = view.findViewById(R.id.btnAddBudget);
         btnPrevMonth = view.findViewById(R.id.btnPrevMonth);
         btnNextMonth = view.findViewById(R.id.btnNextMonth);
@@ -132,11 +176,14 @@ public class AllBudgetsFragment extends Fragment {
         tvBalance = view.findViewById(R.id.tvBalance);
         tvBalanceMinusIcon = view.findViewById(R.id.tvBalanceMinusIcon);
         rvAllBudgets = view.findViewById(R.id.rvAllBudgets);
+        lvMonthlyStatement = view.findViewById(R.id.lvMonthlyStatement);
         getAllBudgets();
         tvMonth = view.findViewById(R.id.tvMonth);
         tvMonth.setText(getShortMonth(months[currentIndex]));
         selectedMonthYear = months[currentIndex] + " " + currentYear;
         getWallet();
+        getReportData(monthYearSql);
+        monthlyStatementList();
 
         topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
             @Override
@@ -193,6 +240,36 @@ public class AllBudgetsFragment extends Fragment {
                 fm.beginTransaction().replace(R.id.home_fragment, createBudgetFragment).commit();
             }
         });
+
+//        btnExportCSV.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                createExcelFile();
+//            }
+//        });
+//
+//        btnReadCSV.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                monthlyReport = new MonthlyReport(workbook, monthYearSql, workbookName);
+//                monthlyReportController.createMonthlyReport(monthlyReport, new ICallback() {
+//                    @Override
+//                    public void onSuccess(Object result) {
+//                        Toast.makeText(getContext(), "Success", Toast.LENGTH_LONG).show();
+//                    }
+//
+//                    @Override
+//                    public void onError(String error) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onAuthFailure(String message) {
+//
+//                    }
+//                });
+//            }
+//        });
     }
 
     public void getWallet(){
@@ -266,7 +343,7 @@ public class AllBudgetsFragment extends Fragment {
                         hashMap.put("limit", budget.getString("limit"));
                         hashMap.put("total_spent", budget.getString("total_spent"));
                         hashMap.put("total_saved", budget.getString("total_saved"));
-                        hashMap.put("balance", budget.getString("balance"));
+                        hashMap.put("balance", budget.getString("budget_balance"));
                         arrayList.add(hashMap);
                     }
                     LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
@@ -292,5 +369,269 @@ public class AllBudgetsFragment extends Fragment {
                 startActivity(goToLoginPage);
             }
         });
+    }
+
+    public void createExcelFile() {
+        try {
+            // Decode the token payload
+            String[] chunks = token.split("\\.");
+            Base64.Decoder decoder = Base64.getUrlDecoder();
+            String payload = new String(decoder.decode(chunks[1]));
+
+            // Parse the payload into a JSON object
+            JSONObject payloadJson = new JSONObject(payload);
+            String username = payloadJson.optString("username");  // Prevents exceptions
+
+            // Prepare header and values
+            String[] headers = {"Trakit Monthly Report", "Username:", "Month:", "", "Total Saved:", "Total Spent:"};
+            String[] dataHeader = {"Date", "Category", "Type", "Amount", "Recurring", ""};
+            String[] headersValue = {"",username, monthYearSql, "", "$" + income, "$" + expense};
+
+            // Create a new Excel workbook
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet(monthYearSql +"-"+ "report");
+            sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 1));
+            sheet.addMergedRegion(new CellRangeAddress(2, 2, 0, 1));
+            sheet.addMergedRegion(new CellRangeAddress(4, 4, 0, 1));
+            sheet.addMergedRegion(new CellRangeAddress(5, 5, 0, 1));
+            HSSFRow dataHeaderRow = sheet.createRow(7);
+            // Write the headers and values to the sheet
+            for (int i = 0; i < headers.length; i++) {
+                HSSFRow row = sheet.createRow(i);
+                    HSSFCell headerCell = row.createCell(0);
+                    headerCell.setCellValue(headers[i]);
+                    HSSFCell valueCell = row.createCell(2);
+                    valueCell.setCellValue(headersValue[i]);
+                HSSFCell dataheader = dataHeaderRow.createCell(i);
+                dataheader.setCellValue(dataHeader[i]);
+            }
+
+            for (int i=0;i<dataReponse.length();i++){
+                HSSFRow row = sheet.createRow(8+i);
+                JSONObject obj = dataReponse.getJSONObject(i);
+                row.createCell(0).setCellValue(StringUtils.convertDateFormat(obj.optString("trans_date")));
+                row.createCell(1).setCellValue(obj.optString("categoryName"));
+                row.createCell(2).setCellValue(obj.optString("categoryType"));
+                row.createCell(3).setCellValue(obj.optString("amount"));
+                row.createCell(4).setCellValue(obj.optBoolean("recurring"));
+            }
+
+            // Save the workbook to storage or file
+            storeWorkBook(workbook);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+//    public void storeWorkBook(HSSFWorkbook hssfWorkbook){
+//        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), workbookName+".xlsx");
+//        try {
+//            FileOutputStream fileOutputStream = new FileOutputStream(file);
+//            hssfWorkbook.write(fileOutputStream);
+//            hssfWorkbook.close();
+//            Toast.makeText(getContext(), "Excel Downloaded", Toast.LENGTH_SHORT).show();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            Toast.makeText(getContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+public void storeWorkBook(HSSFWorkbook hssfWorkbook) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // Android 10 (API level 29) and above - Scoped Storage using MediaStore
+        try {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, workbookName + ".xlsx");
+            values.put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+            // Get Uri to insert the file into Downloads folder
+            Uri uri = getActivity().getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
+            if (uri != null) {
+                OutputStream outputStream = getActivity().getContentResolver().openOutputStream(uri);
+                if (outputStream != null) {
+                    hssfWorkbook.write(outputStream);
+                    hssfWorkbook.close();
+                    outputStream.close();
+                    Toast.makeText(getContext(), "Excel Downloaded", Toast.LENGTH_SHORT).show();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
+        }
+    } else {
+        // For Android versions below 10 (API level 29) - Legacy Storage
+        try {
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), workbookName + ".xlsx");
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            hssfWorkbook.write(fileOutputStream);
+            hssfWorkbook.close();
+            fileOutputStream.close();
+            Toast.makeText(getContext(), "Excel Downloaded", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
+        }
+    }
+}
+
+    public void getReportData(String monthYear){
+        monthlyReportController.getMonthlyReportData(monthYear, new ICallback() {
+            @Override
+            public void onSuccess(Object result) {
+                dataReponse = (JSONArray) result;
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onAuthFailure(String message) {
+                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
+                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(goToLoginPage);
+            }
+        });
+    }
+
+//    public void monthlyStatementList(){
+//        monthlyReportController.getAllReports(new ICallback() {
+//            ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
+//            @Override
+//            public void onSuccess(Object result) {
+//                if (result == null) {
+//                    Toast.makeText(getContext(), "No data found", Toast.LENGTH_LONG).show();
+//                    return;
+//                }
+//                try {
+//                    JSONArray dataArray = (JSONArray) result;
+//                    for (int i=0;i<dataArray.length();i++){
+//                        JSONObject item = dataArray.getJSONObject(i);
+//                        HashMap<String, String> hashMap = new HashMap<>();
+//                        hashMap.put("id",item.getString("id"));
+//                        hashMap.put("name",item.getString("name"));
+//                        hashMap.put("file",item.getString("file"));
+//                        hashMap.put("month",item.getString("month"));
+//                        arrayList.add(hashMap);
+//                    }
+//                    String[] from = {"name","file"};
+//                    int[] to = {R.id.tvName, R.id.tvFile};
+//                    SimpleAdapter simpleAdapter = new SimpleAdapter(getContext(), arrayList, R.layout.statement_list_view, from, to){
+//                        @Override
+//                        public View getView(int position, View convertView, ViewGroup parent) {
+//                            View view = super.getView(position, convertView, parent);
+//                            Button btnDownload = view.findViewById(R.id.btnDownload);
+//                            HashMap<String, String> item = (HashMap<String, String>) arrayList.get(position);
+//                            String base64File = item.get("file");
+//                            btnDownload.setOnClickListener(new View.OnClickListener() {
+//                                @Override
+//                                public void onClick(View view) {
+//                                    HSSFWorkbook workbook = FileUtils.decodeBase64ToWorkbook(base64File);
+//                                    storeWorkBook(workbook);
+//                                }
+//                            });
+//                            return view;
+//                        }
+//                    };
+//                    lvMonthlyStatement.setAdapter(simpleAdapter);
+//                } catch (Exception e){
+//                    e.printStackTrace();
+//                    Toast.makeText(getContext(), "Error fetching monthly report", Toast.LENGTH_LONG).show();
+//                }
+//            }
+//
+//            @Override
+//            public void onError(String error) {
+//                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+//            }
+//
+//            @Override
+//            public void onAuthFailure(String message) {
+//                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
+//                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                startActivity(goToLoginPage);
+//            }
+//        });
+//    }
+
+    public void monthlyStatementList(){
+        monthlyReportController.getAllReports(new ICallback() {
+            ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
+            @Override
+            public void onSuccess(Object result) {
+                if (result == null) {
+                    Toast.makeText(getContext(), "No data found", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                try {
+                    JSONArray dataArray = (JSONArray) result;
+                    for (int i=0; i<dataArray.length(); i++){
+                        JSONObject item = dataArray.getJSONObject(i);
+                        HashMap<String, String> hashMap = new HashMap<>();
+                        hashMap.put("id", item.getString("id"));
+                        hashMap.put("name", item.getString("name"));
+                        hashMap.put("file", item.getString("file"));
+                        hashMap.put("month", item.getString("month"));
+                        arrayList.add(hashMap);
+                    }
+
+                    String[] from = {"name", "file"};
+                    int[] to = {R.id.tvName, R.id.tvFile};
+
+                    SimpleAdapter simpleAdapter = new SimpleAdapter(getContext(), arrayList, R.layout.statement_list_view, from, to){
+                        @Override
+                        public View getView(int position, View convertView, ViewGroup parent) {
+                            View view = super.getView(position, convertView, parent);
+                            Button btnDownload = view.findViewById(R.id.btnDownload);
+                            HashMap<String, String> item = arrayList.get(position);
+                            String base64File = item.get("file");
+
+                            btnDownload.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    HSSFWorkbook workbook = FileUtils.decodeBase64ToWorkbook(base64File);
+                                    storeWorkBook(workbook);  // Use the storeWorkBook method here
+                                }
+                            });
+                            return view;
+                        }
+                    };
+
+                    lvMonthlyStatement.setAdapter(simpleAdapter);
+                } catch (Exception e){
+                    e.printStackTrace();
+                    Toast.makeText(getContext(), "Error fetching monthly report", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onAuthFailure(String message) {
+                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
+                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(goToLoginPage);
+            }
+        });
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                storeWorkBook(workbook);
+            } else {
+                // Permission denied, inform the user
+                Toast.makeText(getContext(), "Permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

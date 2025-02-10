@@ -117,12 +117,20 @@
                 android:textSize="14sp"/>
 
             <TextView
+                android:id="@+id/tvIncDollarIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$"
+                android:textColor="@color/expense"
+                android:textSize="14sp" />
+
+            <TextView
                 android:id="@+id/tvExpense"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="14sp"
-                android:text="$200.00"
-                android:textColor="@color/pastel_red"/>
+                android:text="200.00"
+                android:textColor="@color/expense"/>
         </LinearLayout>
 
         <!-- Remaining Amount Section -->
@@ -139,12 +147,28 @@
                 android:textSize="14sp"/>
 
             <TextView
+                android:id="@+id/tvMinusIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:textColor="@color/currGreen"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/tvBalcDollarIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$"
+                android:textColor="@color/currGreen"
+                android:textSize="14sp" />
+
+            <TextView
                 android:id="@+id/tvBalance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="14sp"
-                android:text="$200.00"
-                android:textColor="@color/pastel_green"/>
+                android:text="200.00"
+                android:textColor="@color/currGreen"/>
         </LinearLayout>
 
     </LinearLayout>

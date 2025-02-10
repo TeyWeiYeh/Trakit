@@ -24,23 +24,40 @@
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tvType"
+            app:layout_constraintEnd_toStartOf="@id/tvTypeWrapper"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- TextView for Type -->
-        <TextView
-            android:id="@+id/tvType"
+        <!-- Horizontal LinearLayout for tvType and tvRecord -->
+        <LinearLayout
+            android:id="@+id/tvTypeWrapper"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="TextView"
-            android:textSize="12sp"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnEditCat"
             app:layout_constraintStart_toEndOf="@id/tvName"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <!-- TextView for Type -->
+            <TextView
+                android:id="@+id/tvNumRecord"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="TextView"
+                android:textSize="12sp" />
+
+            <!-- TextView for Record -->
+            <TextView
+                android:id="@+id/tvRecord"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Record(s)"
+                android:textSize="12sp"
+                android:layout_marginStart="2dp"/>
+        </LinearLayout>
 
         <!-- Button -->
         <Button

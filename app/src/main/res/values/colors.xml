@@ -16,4 +16,6 @@
     <color name="pastel_green">#A8D1D1</color>
     <color name="pastel_blue">#E5F4F4</color>
     <color name="recurring">#999ba1</color>
+    <color name="currGreen">#00A300</color>
+
 </resources>

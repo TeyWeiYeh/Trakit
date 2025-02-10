@@ -13,11 +13,13 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import mdad.localdata.trakit.R;
 import mdad.localdata.trakit.budgetfragments.UpdateBudgetFragment;
 import mdad.localdata.trakit.budgetfragments.ViewBudgetFragment;
+import utils.StringUtils;
 
 public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder> {
 
@@ -42,11 +44,22 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         HashMap<String, String> budget = budgetList.get(position);
         holder.tvName.setText(budget.get("name"));
-        holder.tvStartDate.setText(budget.get("start_date"));
-        holder.tvEndDate.setText(budget.get("end_date"));
+        holder.tvStartDate.setText(StringUtils.convertDateFormat(budget.get("start_date")));
+        holder.tvEndDate.setText(StringUtils.convertDateFormat(budget.get("end_date")));
         holder.tvAmt.setText(budget.get("limit"));
         holder.tvExpense.setText(budget.get("total_spent"));
-        holder.tvBalance.setText(budget.get("balance"));
+        Float floatBalance =Float.parseFloat((budget.get("balance")));
+        DecimalFormat df = new DecimalFormat("0.00");
+        df.setMaximumFractionDigits(2);
+        if (floatBalance <0){
+            floatBalance = Math.abs(floatBalance);
+            holder.tvBalance.setText(df.format(floatBalance));
+            holder.tvMinusIcon.setVisibility(View.VISIBLE);
+        }
+        else{
+            holder.tvBalance.setText(df.format(floatBalance));
+            holder.tvMinusIcon.setVisibility(View.GONE);
+        }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,8 +68,8 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
                 Bundle bundle = new Bundle();
                 bundle.putString("id", budget.get("id"));
                 bundle.putString("name", budget.get("name"));
-                bundle.putString("start_date", budget.get("start_date"));
-                bundle.putString("end_date", budget.get("end_date"));
+                bundle.putString("start_date", StringUtils.convertDateFormat(budget.get("start_date")));
+                bundle.putString("end_date", StringUtils.convertDateFormat(budget.get("end_date")));
                 bundle.putString("limit", budget.get("limit"));
                 bundle.putString("total_spent", budget.get("total_spent"));
                 bundle.putString("balance", budget.get("balance"));
@@ -78,7 +91,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvStartDate, tvEndDate,tvAmt, tvExpense, tvBalance;
+        TextView tvName, tvStartDate, tvEndDate,tvAmt, tvExpense, tvBalance, tvMinusIcon;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -88,6 +101,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
             tvAmt = itemView.findViewById(R.id.tvAmt);
             tvExpense = itemView.findViewById(R.id.tvExpense);
             tvBalance = itemView.findViewById(R.id.tvBalance);
+            tvMinusIcon = itemView.findViewById(R.id.tvMinusIcon);
         }
     }
 }

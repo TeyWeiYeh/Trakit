@@ -9,9 +9,11 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
 import androidx.annotation.ColorInt;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -39,6 +41,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,12 +56,14 @@ import java.util.Map;
 import data.network.ICallback;
 import data.network.VolleySingleton;
 import data.network.controller.CategoryController;
+import data.network.controller.TransactionController;
 import domain.Category;
 import mdad.localdata.trakit.AuthActivity;
 import mdad.localdata.trakit.MainActivity;
 import mdad.localdata.trakit.ProfileActivity;
 import mdad.localdata.trakit.R;
 import mdad.localdata.trakit.authfragments.LoginFragment;
+import mdad.localdata.trakit.transactionfragments.AllTransactionsFragment;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -117,20 +122,23 @@ public class CategoryFragment extends Fragment {
 
     MaterialToolbar topAppBar;
     String url = MainActivity.ipBaseUrl + "/category/create.php?type=";
-    String token;
+    String token, id, name, userId, transactionCount;
     ListView category_list;
     String type = Category.Type.EXPENSE.toString();
     EditText etCat, etCreateCat;
-    TextView cid;
+    TextView cid, tvUserId;
     Button btnSave, btnDelete, btnOpenAddPopup, btnAdd, btnCancel;
     RadioGroup radioGroup;
     RadioButton expenseButton, incomeButton;
     CategoryController categoryController;
     SharedPreferences sharedPreferences;
+    TransactionController transactionController;
+    Integer intTransCount;
     //Button btnEditCat;
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
         categoryController = new CategoryController(getContext());
+        transactionController = new TransactionController(getContext());
         sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         token = sharedPreferences.getString("token", null);
         topAppBar = view.findViewById(R.id.topAppBar);
@@ -246,33 +254,53 @@ public class CategoryFragment extends Fragment {
                     JSONArray dataArray = (JSONArray) result;
                     for (int i = 0; i < dataArray.length(); i++) {
                         JSONObject item = dataArray.getJSONObject(i);
-                        String id = item.getString("id");
-                        String name = item.getString("name");
+                        id = item.getString("id");
+                        name = item.getString("name");
                         if (name.length() > 10) {
                             name = name.substring(0, 5) + "...";
                         }
                         String type = item.getString("type");
+                        userId = item.getString("userId");
+                        transactionCount = item.getString("transaction_count");
+                        intTransCount = Integer.parseInt(transactionCount);
                         HashMap<String, String> hashMap = new HashMap<>();
                         hashMap.put("id", id);
                         hashMap.put("name", name);
                         hashMap.put("type", type);
+                        hashMap.put("userId", userId);
+                        hashMap.put("trans_count", transactionCount);
                         arrayList.add(hashMap);
                     }
 
-                    String[] from = {"id", "name", "type"}; // string array
-                    int[] to = {R.id.catId, R.id.tvName, R.id.tvType}; // int array of views id's
+                    String[] from = {"id", "name", "trans_count", "userId"}; // string array
+                    int[] to = {R.id.catId, R.id.tvName, R.id.tvNumRecord, R.id.tvUserId}; // int array of views id's
                     SimpleAdapter simpleAdapter = new SimpleAdapter(getContext(), arrayList, R.layout.list_view_items, from, to) {
                         @Override
                         public View getView(int position, View convertView, ViewGroup parent) {
                             View view = super.getView(position, convertView, parent);
                             Button btnEditCat = view.findViewById(R.id.btnEditCat);
+                            TextView tvNumRecord = view.findViewById(R.id.tvNumRecord);
+                            HashMap<String, String> item = (HashMap<String, String>) arrayList.get(position);
+                            String popupUserId = item.get("userId");
+                            String popupTransCount = item.get("trans_count");
+                            Integer intPopupTransCount = Integer.parseInt(popupTransCount);
+                            if (intPopupTransCount == 0){
+                                tvNumRecord.setText("No");
+                            } else if (popupUserId.equals("null")){
+                                btnEditCat.setVisibility(View.INVISIBLE);
+                            }
+                            else{
+                                btnEditCat.setVisibility(View.VISIBLE);
+                                tvNumRecord.setText(popupTransCount);
+                            }
                             btnEditCat.setOnClickListener(v -> {
-                                // Create and show the popup window
                                 LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                                 View popupView = inflater.inflate(R.layout.popup, null);
                                 etCat = popupView.findViewById(R.id.etCat);
                                 btnSave = popupView.findViewById(R.id.btnSave);
                                 btnDelete = popupView.findViewById(R.id.btnDelete);
+                                tvUserId = popupView.findViewById(R.id.tvUserId);
+//                                String popupUserId = tvUserId.getText().toString();
                                 String catId = ((TextView) view.findViewById(R.id.catId)).getText().toString();
                                 Category.Type catType = expenseButton.getText().toString().equals("Expense") ? Category.Type.EXPENSE : Category.Type.INCOME;
                                 cid = popupView.findViewById(R.id.cid);
@@ -302,38 +330,53 @@ public class CategoryFragment extends Fragment {
 
                                         @Override
                                         public void onAuthFailure(String authFailure) {
-                                            Toast.makeText(getContext(), authFailure, Toast.LENGTH_LONG).show();
-                                            // Redirect the user to the login screen
                                             Intent intent = new Intent(getContext(), AuthActivity.class);
                                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                             startActivity(intent);
                                         }
                                     });
                                 });
-                                btnDelete.setOnClickListener(view1 -> {
-                                    categoryController.deleteCategory(cid.getText().toString(), new ICallback() {
-                                        @Override
-                                        public void onSuccess(Object result) {
-                                            popupWindow.dismiss();
-                                            catList(type);
-                                            Toast.makeText(getContext(), result.toString(), Toast.LENGTH_LONG).show();
-                                        }
+                                if (intPopupTransCount > 0 || popupUserId.equals("null")){
+                                    btnDelete.setEnabled(false);
+                                    Toast.makeText(getContext(), "Category cannot be deleted", Toast.LENGTH_LONG).show();
+                                }
+                                else{
+                                    btnDelete.setEnabled(true);
+                                    btnDelete.setOnClickListener(view1 -> {
+                                        new MaterialAlertDialogBuilder(getContext())
+                                                .setTitle("Delete")
+                                                .setMessage("Are you sure?")
+                                                .setNegativeButton(getResources().getString(R.string.btnCancel), (dialog, which) -> {
+                                                    dialog.dismiss();
+                                                })
+                                                .setPositiveButton(getResources().getString(R.string.btnConfirm), (dialog, which) -> {
+                                                    categoryController.deleteCategory(cid.getText().toString(), new ICallback() {
+                                                        @Override
+                                                        public void onSuccess(Object result) {
+                                                            popupWindow.dismiss();
+                                                            catList(type);
+                                                            Toast.makeText(getContext(), result.toString(), Toast.LENGTH_LONG).show();
+                                                        }
 
-                                        @Override
-                                        public void onError(String error) {
-                                            Toast.makeText(getContext(), "Error deleting category: " + error, Toast.LENGTH_LONG).show();
-                                        }
+                                                        @Override
+                                                        public void onError(String error) {
+                                                            Toast.makeText(getContext(), "Error deleting category: " + error, Toast.LENGTH_LONG).show();
+                                                        }
 
-                                        @Override
-                                        public void onAuthFailure(String authFailure) {
-                                            Toast.makeText(getContext(), authFailure, Toast.LENGTH_LONG).show();
-                                            // Redirect the user to the login screen
-                                            Intent intent = new Intent(getContext(), AuthActivity.class);
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                            startActivity(intent);
-                                        }
+                                                        @Override
+                                                        public void onAuthFailure(String authFailure) {
+                                                            Toast.makeText(getContext(), authFailure, Toast.LENGTH_LONG).show();
+                                                            // Redirect the user to the login screen
+                                                            Intent intent = new Intent(getContext(), AuthActivity.class);
+                                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                            startActivity(intent);
+                                                        }
+                                                    });
+                                                })
+                                                .setIcon(ContextCompat.getDrawable(getContext(), R.drawable.warning_icon))
+                                                .show();
                                     });
-                                });
+                                }
                             });
                             return view;
                         }
@@ -366,5 +409,24 @@ public class CategoryFragment extends Fragment {
         p.flags |= WindowManager.LayoutParams.FLAG_DIM_BEHIND;
         p.dimAmount = 0.5f; // Adjust dim amount (0.0 - no dim, 1.0 - fully dimmed)
         wm.updateViewLayout(container, p);
+    }
+
+    private void getAllTransactionsByCatId(String id){
+        transactionController.getTransactionsByCatId(id, new ICallback() {
+            @Override
+            public void onSuccess(Object result) {
+
+            }
+
+            @Override
+            public void onError(String error) {
+
+            }
+
+            @Override
+            public void onAuthFailure(String message) {
+
+            }
+        });
     }
 }
