@@ -15,6 +15,7 @@ public class VolleySingleton {
     private ImageLoader imageLoader;
     private static Context ctx;
 
+    //a single volley instance is used through the entire project, recommended by the official docs
     private VolleySingleton(Context context) {
         ctx = context;
         requestQueue = getRequestQueue();

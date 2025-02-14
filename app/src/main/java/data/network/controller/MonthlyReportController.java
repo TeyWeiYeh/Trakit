@@ -24,6 +24,7 @@ public class MonthlyReportController {
         this.context = context;
         this.apiController = new ApiController(context);
     }
+    //functions to perform crud operations for monthly reports, with appropriate error handling
 
     public void getMonthlyReportData(String monthYear, ICallback callback){
         apiController.getMonthlyReportData(monthYear, response-> {

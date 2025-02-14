@@ -22,7 +22,7 @@ public class Budget {
         this.end_date = end_date;
         this.limit = limit;
     }
-
+    //setter and getters for the budget entity
     public String getId() {
         return id;
     }

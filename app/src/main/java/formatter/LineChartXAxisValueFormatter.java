@@ -6,6 +6,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 public class LineChartXAxisValueFormatter extends ValueFormatter {
     private final String[] mValues;
 
+    //used to reduce the number of values displayed on the x-axis of the line chart
     public LineChartXAxisValueFormatter(String[] values) {
         this.mValues = values;
     }

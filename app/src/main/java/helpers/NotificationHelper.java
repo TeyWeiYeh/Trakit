@@ -13,7 +13,7 @@ public class NotificationHelper {
     private static final String CHANNEL_NAME = "My Channel Name";
     private static final String CHANNEL_DESC = "Channel for task notifications";
 
-    // Call this method once at app startup to create the channel
+    //call this method once at app startup to create the channel
     public static void createNotificationChannel(Context context) {
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
@@ -28,7 +28,7 @@ public class NotificationHelper {
         }
     }
 
-    // Call this method from anywhere to send a notification
+    //call this method from anywhere to send a notification
     public static void sendNotification(Context context, String title, String message) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+ requires explicit permission
             if (context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) !=

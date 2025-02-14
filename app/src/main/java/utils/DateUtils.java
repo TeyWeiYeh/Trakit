@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class DateUtils {
+    //some date display filter to make the user experience better
     public static String convertToYearMonth(String monthYear) {
         // Mapping of month names to their respective numeric values
         Map<String, String> monthMap = new HashMap<>();

@@ -111,6 +111,7 @@ public class TransactionFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
+        //parent container of the all transactions, update and view page
         Fragment allTransFragment = new AllTransactionsFragment();
         FragmentManager fm = getChildFragmentManager();
         FragmentTransaction fragTrans = fm.beginTransaction();

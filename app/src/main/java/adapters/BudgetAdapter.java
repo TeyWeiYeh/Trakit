@@ -5,10 +5,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,11 +18,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import mdad.localdata.trakit.R;
 import mdad.localdata.trakit.budgetfragments.UpdateBudgetFragment;
-import mdad.localdata.trakit.budgetfragments.ViewBudgetFragment;
 import utils.StringUtils;
 
 public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder> {
-
+    //using a custom recycler view adapter for horizontal scrolling
     private final ArrayList<HashMap<String, String>> budgetList;
     private final Context context;
     private FragmentManager fragmentManager;
@@ -51,6 +50,11 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
         Float floatBalance =Float.parseFloat((budget.get("balance")));
         DecimalFormat df = new DecimalFormat("0.00");
         df.setMaximumFractionDigits(2);
+        double limit = Double.parseDouble(budget.get("limit"));
+        double balance = Double.parseDouble(budget.get("balance"));
+        int progress = (int) ((balance / limit) * 100);
+        holder.budgetProgress.setProgress(progress, true);
+        holder.budgetProgress.setVisibility(View.VISIBLE);
         if (floatBalance <0){
             floatBalance = Math.abs(floatBalance);
             holder.tvBalance.setText(df.format(floatBalance));
@@ -60,7 +64,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
             holder.tvBalance.setText(df.format(floatBalance));
             holder.tvMinusIcon.setVisibility(View.GONE);
         }
-
+        //put the item's info inside a bundle and passing to the update budget fragment
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -73,6 +77,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
                 bundle.putString("limit", budget.get("limit"));
                 bundle.putString("total_spent", budget.get("total_spent"));
                 bundle.putString("balance", budget.get("balance"));
+                bundle.putString("fullName", budget.get("fullName"));
 
                 // Create fragment and set arguments
                 Fragment goToUpdateBudgetFragment = new UpdateBudgetFragment();
@@ -90,8 +95,10 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
         return budgetList.size();
     }
 
+    //initialising the variables
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvStartDate, tvEndDate,tvAmt, tvExpense, tvBalance, tvMinusIcon;
+        ProgressBar budgetProgress;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -102,6 +109,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
             tvExpense = itemView.findViewById(R.id.tvExpense);
             tvBalance = itemView.findViewById(R.id.tvBalance);
             tvMinusIcon = itemView.findViewById(R.id.tvMinusIcon);
+            budgetProgress = itemView.findViewById(R.id.budgetProgress);
         }
     }
 }

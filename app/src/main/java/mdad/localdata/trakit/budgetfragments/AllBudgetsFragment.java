@@ -135,7 +135,7 @@ public class AllBudgetsFragment extends Fragment {
 
     WalletController walletController;
     MonthlyReportController monthlyReportController;
-    String token, selectedMonthYear, income, expense, balance, budgetId, budgetName, budgetSD, budgetED, budgetLimit, budgetUID, budgetExp, budgetInc, budgetBal, id, file, userId, name, reportMonth;
+    String token, selectedMonthYear, income, expense, balance;
     Button btnAddBudget;
     ImageButton btnPrevMonth, btnNextMonth;
     TextView tvIncome, tvExpense, tvBalance, tvMonth, tvBalanceMinusIcon;
@@ -143,7 +143,6 @@ public class AllBudgetsFragment extends Fragment {
     BudgetController budgetController;
     MaterialToolbar topAppBar;
     SharedPreferences sharedPreferences;
-    JSONArray dataReponse;
     String[] months = {
             "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"
@@ -156,7 +155,6 @@ public class AllBudgetsFragment extends Fragment {
     int currentIndex = month -1;
     String monthYearSql = year + "-" + String.format("%02d", month);
     HSSFWorkbook workbook;
-    MonthlyReport monthlyReport;
     ListView lvMonthlyStatement;
     String workbookName = monthYearSql +"-"+ "report";
     private static final int PERMISSION_REQUEST_CODE = 100;
@@ -182,9 +180,9 @@ public class AllBudgetsFragment extends Fragment {
         tvMonth.setText(getShortMonth(months[currentIndex]));
         selectedMonthYear = months[currentIndex] + " " + currentYear;
         getWallet();
-        getReportData(monthYearSql);
         monthlyStatementList();
 
+        //actions like logout and go to profile from the top nav bar
         topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -203,7 +201,7 @@ public class AllBudgetsFragment extends Fragment {
                     return false;
             }
         });
-
+        //button to go to previous month
         btnPrevMonth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -218,6 +216,7 @@ public class AllBudgetsFragment extends Fragment {
             }
         });
 
+        //button to go to next month
         btnNextMonth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -232,6 +231,7 @@ public class AllBudgetsFragment extends Fragment {
             }
         });
 
+        //go to create budget page
         btnAddBudget.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -240,38 +240,9 @@ public class AllBudgetsFragment extends Fragment {
                 fm.beginTransaction().replace(R.id.home_fragment, createBudgetFragment).commit();
             }
         });
-
-//        btnExportCSV.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                createExcelFile();
-//            }
-//        });
-//
-//        btnReadCSV.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                monthlyReport = new MonthlyReport(workbook, monthYearSql, workbookName);
-//                monthlyReportController.createMonthlyReport(monthlyReport, new ICallback() {
-//                    @Override
-//                    public void onSuccess(Object result) {
-//                        Toast.makeText(getContext(), "Success", Toast.LENGTH_LONG).show();
-//                    }
-//
-//                    @Override
-//                    public void onError(String error) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onAuthFailure(String message) {
-//
-//                    }
-//                });
-//            }
-//        });
     }
 
+    //get the wallet data (spending, income, balance) for the logged in user in the landing page
     public void getWallet(){
         walletController.getWalletData(selectedMonthYear, new ICallback() {
             @Override
@@ -314,6 +285,7 @@ public class AllBudgetsFragment extends Fragment {
         });
     }
 
+    //get all the budgets of the user and populate the recycler view custom adapter
     public void getAllBudgets(){
         ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
         budgetController.getAllBudgets(new ICallback() {
@@ -327,17 +299,10 @@ public class AllBudgetsFragment extends Fragment {
                     JSONArray transListArray = (JSONArray) result;
                     for (int i=0; i<transListArray.length(); i++){
                         JSONObject budget = transListArray.getJSONObject(i);
-//                        budgetId = budget.getString("id");
-//                        budgetName = budget.getString("name");
-//                        budgetSD = budget.getString("start_date");
-//                        budgetED = budget.getString("end_date");
-//                        budgetLimit = budget.getString("limit");
-//                        budgetExp = budget.getString("total_spent");
-//                        budgetInc = budget.getString("total_saved");
-//                        budgetBal = budget.getString("balance");
                         HashMap<String, String> hashMap = new HashMap<>();
                         hashMap.put("id", budget.getString("id"));
-                        hashMap.put("name", budget.getString("name"));
+                        hashMap.put("name", StringUtils.trimString(budget.getString("name")));
+                        hashMap.put("fullName", budget.getString("name"));
                         hashMap.put("start_date", budget.getString("start_date"));
                         hashMap.put("end_date", budget.getString("end_date"));
                         hashMap.put("limit", budget.getString("limit"));
@@ -371,191 +336,48 @@ public class AllBudgetsFragment extends Fragment {
         });
     }
 
-    public void createExcelFile() {
-        try {
-            // Decode the token payload
-            String[] chunks = token.split("\\.");
-            Base64.Decoder decoder = Base64.getUrlDecoder();
-            String payload = new String(decoder.decode(chunks[1]));
+    //store the excel file in the downloads folder
+    public void storeWorkBook(HSSFWorkbook hssfWorkbook) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10 (API level 29) and above - Scoped Storage using MediaStore
+            try {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, hssfWorkbook.getSheetName(0) + ".xlsx");
+                values.put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
 
-            // Parse the payload into a JSON object
-            JSONObject payloadJson = new JSONObject(payload);
-            String username = payloadJson.optString("username");  // Prevents exceptions
-
-            // Prepare header and values
-            String[] headers = {"Trakit Monthly Report", "Username:", "Month:", "", "Total Saved:", "Total Spent:"};
-            String[] dataHeader = {"Date", "Category", "Type", "Amount", "Recurring", ""};
-            String[] headersValue = {"",username, monthYearSql, "", "$" + income, "$" + expense};
-
-            // Create a new Excel workbook
-            workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet(monthYearSql +"-"+ "report");
-            sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 1));
-            sheet.addMergedRegion(new CellRangeAddress(2, 2, 0, 1));
-            sheet.addMergedRegion(new CellRangeAddress(4, 4, 0, 1));
-            sheet.addMergedRegion(new CellRangeAddress(5, 5, 0, 1));
-            HSSFRow dataHeaderRow = sheet.createRow(7);
-            // Write the headers and values to the sheet
-            for (int i = 0; i < headers.length; i++) {
-                HSSFRow row = sheet.createRow(i);
-                    HSSFCell headerCell = row.createCell(0);
-                    headerCell.setCellValue(headers[i]);
-                    HSSFCell valueCell = row.createCell(2);
-                    valueCell.setCellValue(headersValue[i]);
-                HSSFCell dataheader = dataHeaderRow.createCell(i);
-                dataheader.setCellValue(dataHeader[i]);
-            }
-
-            for (int i=0;i<dataReponse.length();i++){
-                HSSFRow row = sheet.createRow(8+i);
-                JSONObject obj = dataReponse.getJSONObject(i);
-                row.createCell(0).setCellValue(StringUtils.convertDateFormat(obj.optString("trans_date")));
-                row.createCell(1).setCellValue(obj.optString("categoryName"));
-                row.createCell(2).setCellValue(obj.optString("categoryType"));
-                row.createCell(3).setCellValue(obj.optString("amount"));
-                row.createCell(4).setCellValue(obj.optBoolean("recurring"));
-            }
-
-            // Save the workbook to storage or file
-            storeWorkBook(workbook);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-//    public void storeWorkBook(HSSFWorkbook hssfWorkbook){
-//        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), workbookName+".xlsx");
-//        try {
-//            FileOutputStream fileOutputStream = new FileOutputStream(file);
-//            hssfWorkbook.write(fileOutputStream);
-//            hssfWorkbook.close();
-//            Toast.makeText(getContext(), "Excel Downloaded", Toast.LENGTH_SHORT).show();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            Toast.makeText(getContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
-//        }
-//    }
-public void storeWorkBook(HSSFWorkbook hssfWorkbook) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        // Android 10 (API level 29) and above - Scoped Storage using MediaStore
-        try {
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.MediaColumns.DISPLAY_NAME, workbookName + ".xlsx");
-            values.put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-
-            // Get Uri to insert the file into Downloads folder
-            Uri uri = getActivity().getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
-            if (uri != null) {
-                OutputStream outputStream = getActivity().getContentResolver().openOutputStream(uri);
-                if (outputStream != null) {
-                    hssfWorkbook.write(outputStream);
-                    hssfWorkbook.close();
-                    outputStream.close();
-                    Toast.makeText(getContext(), "Excel Downloaded", Toast.LENGTH_SHORT).show();
+                // Get Uri to insert the file into Downloads folder
+                Uri uri = getActivity().getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
+                if (uri != null) {
+                    OutputStream outputStream = getActivity().getContentResolver().openOutputStream(uri);
+                    if (outputStream != null) {
+                        hssfWorkbook.write(outputStream);
+                        hssfWorkbook.close();
+                        outputStream.close();
+                        Toast.makeText(getContext(), "Excel Downloaded", Toast.LENGTH_SHORT).show();
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(getContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(getContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
-        }
-    } else {
-        // For Android versions below 10 (API level 29) - Legacy Storage
-        try {
-            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), workbookName + ".xlsx");
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            hssfWorkbook.write(fileOutputStream);
-            hssfWorkbook.close();
-            fileOutputStream.close();
-            Toast.makeText(getContext(), "Excel Downloaded", Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(getContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
+        } else {
+            // For Android versions below 10 (API level 29) - Legacy Storage
+            try {
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), workbookName + ".xlsx");
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                hssfWorkbook.write(fileOutputStream);
+                hssfWorkbook.close();
+                fileOutputStream.close();
+                Toast.makeText(getContext(), "Excel Downloaded", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(getContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
+            }
         }
     }
-}
 
-    public void getReportData(String monthYear){
-        monthlyReportController.getMonthlyReportData(monthYear, new ICallback() {
-            @Override
-            public void onSuccess(Object result) {
-                dataReponse = (JSONArray) result;
-            }
-
-            @Override
-            public void onError(String error) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onAuthFailure(String message) {
-                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
-                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(goToLoginPage);
-            }
-        });
-    }
-
-//    public void monthlyStatementList(){
-//        monthlyReportController.getAllReports(new ICallback() {
-//            ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
-//            @Override
-//            public void onSuccess(Object result) {
-//                if (result == null) {
-//                    Toast.makeText(getContext(), "No data found", Toast.LENGTH_LONG).show();
-//                    return;
-//                }
-//                try {
-//                    JSONArray dataArray = (JSONArray) result;
-//                    for (int i=0;i<dataArray.length();i++){
-//                        JSONObject item = dataArray.getJSONObject(i);
-//                        HashMap<String, String> hashMap = new HashMap<>();
-//                        hashMap.put("id",item.getString("id"));
-//                        hashMap.put("name",item.getString("name"));
-//                        hashMap.put("file",item.getString("file"));
-//                        hashMap.put("month",item.getString("month"));
-//                        arrayList.add(hashMap);
-//                    }
-//                    String[] from = {"name","file"};
-//                    int[] to = {R.id.tvName, R.id.tvFile};
-//                    SimpleAdapter simpleAdapter = new SimpleAdapter(getContext(), arrayList, R.layout.statement_list_view, from, to){
-//                        @Override
-//                        public View getView(int position, View convertView, ViewGroup parent) {
-//                            View view = super.getView(position, convertView, parent);
-//                            Button btnDownload = view.findViewById(R.id.btnDownload);
-//                            HashMap<String, String> item = (HashMap<String, String>) arrayList.get(position);
-//                            String base64File = item.get("file");
-//                            btnDownload.setOnClickListener(new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View view) {
-//                                    HSSFWorkbook workbook = FileUtils.decodeBase64ToWorkbook(base64File);
-//                                    storeWorkBook(workbook);
-//                                }
-//                            });
-//                            return view;
-//                        }
-//                    };
-//                    lvMonthlyStatement.setAdapter(simpleAdapter);
-//                } catch (Exception e){
-//                    e.printStackTrace();
-//                    Toast.makeText(getContext(), "Error fetching monthly report", Toast.LENGTH_LONG).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onError(String error) {
-//                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-//            }
-//
-//            @Override
-//            public void onAuthFailure(String message) {
-//                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
-//                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                startActivity(goToLoginPage);
-//            }
-//        });
-//    }
-
+    //display all the monthly reports generated for the user in a list view
     public void monthlyStatementList(){
         monthlyReportController.getAllReports(new ICallback() {
             ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
@@ -621,6 +443,7 @@ public void storeWorkBook(HSSFWorkbook hssfWorkbook) {
     }
 
 
+    //handle the permission result
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

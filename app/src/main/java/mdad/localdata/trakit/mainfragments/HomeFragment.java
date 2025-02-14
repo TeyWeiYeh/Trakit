@@ -112,6 +112,7 @@ public class HomeFragment extends Fragment {
     }
 
     public void onViewCreated(View view, Bundle savedInstanceState){
+        //request notification permission
         requestNotificationPermission();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
             if (checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS)
@@ -120,12 +121,14 @@ public class HomeFragment extends Fragment {
                         new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
             }
         }
+        //create the notification channel
         NotificationHelper.createNotificationChannel(requireContext());
+        //start the android work manager in the background, repeating one day and assign the work to do
         PeriodicWorkRequest fetchRecurringBills = new PeriodicWorkRequest.Builder(
                 RecurringBillWorker.class,
-                15, TimeUnit.MINUTES
-//                1, TimeUnit.DAYS,  // Repeat every 1 day
-//                1, TimeUnit.HOURS  // Allow 1-hour flex time
+//                15, TimeUnit.MINUTES
+                1, TimeUnit.DAYS,  // Repeat every 1 day
+                1, TimeUnit.HOURS  // Allow 1-hour flex time
         ).build();
         WorkManager.getInstance(getContext()).enqueueUniquePeriodicWork(
                 "RecurringBillWorker", // Unique name for the worker

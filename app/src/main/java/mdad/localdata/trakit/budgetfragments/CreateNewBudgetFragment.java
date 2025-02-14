@@ -93,6 +93,7 @@ public class CreateNewBudgetFragment extends Fragment {
         etCreateEndDate = view.findViewById(R.id.etCreateEndDate);
         btnCreateBudget = view.findViewById(R.id.btnCreateBudget);
         topAppBar = view.findViewById(R.id.topAppBar);
+        //navigate back to the all landing page
         topAppBar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -101,6 +102,7 @@ public class CreateNewBudgetFragment extends Fragment {
                 fm.beginTransaction().replace(R.id.home_fragment, backToAllBudgetFragment).commit();
             }
         });
+        //date picker for start and end date period of budget
         MaterialDatePicker<Long> startDatePicker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText("Select Start Date")
                 .build();
@@ -115,7 +117,7 @@ public class CreateNewBudgetFragment extends Fragment {
         etCreateEndDate.setFocusable(false);
         etCreateEndDate.setClickable(true);
 
-// Store selected dates
+        // Store selected dates
         final long[] startDate = {0};
         final long[] endDate = {0};
 
@@ -162,6 +164,7 @@ public class CreateNewBudgetFragment extends Fragment {
                 etCreateEndDate.setText(sdf.format(calendar.getTime()));
             }
         });
+        //button on click to create new budget by calling the create budget function
         btnCreateBudget.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -178,6 +181,7 @@ public class CreateNewBudgetFragment extends Fragment {
         });
     }
 
+    //reset the fields if successfully created budget
     public void createBudget(Budget budget){
         budgetController.createBudget(budget, new ICallback() {
             @Override

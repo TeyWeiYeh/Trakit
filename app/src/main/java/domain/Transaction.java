@@ -41,6 +41,7 @@ public class Transaction {
         this.categoryId = categoryId;
     }
 
+    //setter and getters for the transaction entity
     public String getId() {
         return id;
     }

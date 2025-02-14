@@ -107,6 +107,8 @@ public class SignupFragment extends Fragment {
         tvToLogin = (TextView) view.findViewById(R.id.tvToLogin);
         password = etSignupPassword.getText().toString();
         confpassword = etSignupSecondaryPassword.getText().toString();
+
+        //ensures the user password and confirm password matches before proceeding
         etSignupSecondaryPassword.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -152,17 +154,25 @@ public class SignupFragment extends Fragment {
                 String trimEmail = etSignupEmail.getText().toString().trim();
                 String trimUsername = etSignupUsername.getText().toString().trim();
                 String trimPassword = etSignupPassword.getText().toString().trim();
+                String confirmPassword = etSignupSecondaryPassword.getText().toString().trim();
+                //ensure all fields are filled in and passwords are the same
                 if (!trimEmail.isEmpty() && !trimUsername.isEmpty() && !trimPassword.isEmpty()){
-                    Map<String, String> params_signup = new HashMap<String, String>();
-                    params_signup.put("email", trimEmail);
-                    params_signup.put("username", trimUsername);
-                    params_signup.put("password", trimPassword);
-                    Signup(url_signup, params_signup);
+                    if (!trimPassword.equals(confirmPassword)){
+                        Toast.makeText(getContext(), "Passwords don't match", Toast.LENGTH_LONG).show();
+                    }
+                    else{
+                        Map<String, String> params_signup = new HashMap<String, String>();
+                        params_signup.put("email", trimEmail);
+                        params_signup.put("username", trimUsername);
+                        params_signup.put("password", trimPassword);
+                        Signup(url_signup, params_signup);
+                    }
                 } else {
                     Toast.makeText(requireContext().getApplicationContext(), "Please fill up all fields", Toast.LENGTH_LONG).show();
                 }
             }
         });
+        //navigate to the login page
         tvToLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -179,8 +189,8 @@ public class SignupFragment extends Fragment {
         return password.equals(confPassword);
     }
 
+    //function to sign up the user, if successful then token will be stored in shared preferences
     public void Signup(String url, Map params ){
-        RequestQueue requestQueue = VolleySingleton.getInstance(getContext()).getRequestQueue();
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -234,8 +244,6 @@ public class SignupFragment extends Fragment {
         VolleySingleton.getInstance(getContext()).addToRequestQueue(stringRequest);
     }
     public void storeToken(String token) {
-//        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
-//        sharedPreferences.edit().putString("token", token).apply();
         AuthActivity.getSharedPreferences().edit().putString("token", token).apply();
     }
 }

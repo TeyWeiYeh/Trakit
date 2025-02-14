@@ -23,6 +23,7 @@ public class Category {
         this.type = type;
     }
 
+    //setter and getters for the category entity
     public String getId() {
         return id;
     }

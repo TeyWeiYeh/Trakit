@@ -1,6 +1,8 @@
 package mdad.localdata.trakit;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -9,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -19,9 +22,11 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -33,7 +38,10 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import data.network.ICallback;
 import data.network.controller.UserController;
@@ -45,11 +53,14 @@ public class ProfileActivity extends AppCompatActivity {
     Button btnChangeProfilePic, btnUpdate, btnLogout;
     UserController userController;
     SharedPreferences sharedPreferences;
-    String token, user_id, base64ImgString;
+    String token, user_id, base64ImgString, currentPhotoPath, base64Img;
     EditText etProfileEmail, etProfileUsername;
     MaterialToolbar topAppBar;
+    Bitmap selectedImageBitmap;
 //    private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
     private static final int CAMERA_CAPTURE_REQUEST_CODE = 101;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_IMAGE_PICK = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,13 +105,15 @@ public class ProfileActivity extends AppCompatActivity {
         btnChangeProfilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openGallery();
+                //openGallery();
+                showImageSourceDialog();
             }
         });
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                User updateUserObject = new User(user_id, etProfileEmail.getText().toString(), base64ImgString);
+                String imageString = base64ImgString != null ? base64ImgString : "";
+                User updateUserObject = new User(user_id, etProfileEmail.getText().toString(), imageString);
                 updateUserDetails(updateUserObject);
             }
         });
@@ -119,24 +132,109 @@ public class ProfileActivity extends AppCompatActivity {
         startActivityForResult(galleryIntent, CAMERA_CAPTURE_REQUEST_CODE);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        // Match the request 'pic id with requestCode
-        if (requestCode == CAMERA_CAPTURE_REQUEST_CODE && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            Uri imageUri = data.getData();
+    private void takePhoto() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (intent.resolveActivity(getApplicationContext().getPackageManager()) != null) {
+            File photoFile = null;
             try {
-                // Get the selected image as a Bitmap
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
-                bitmap = ImageUtils.editImgSize(bitmap, 120, 120);
-                base64ImgString = ImageUtils.encodeToBase64(bitmap, Bitmap.CompressFormat.PNG, 100);
-                // Set the image to an ImageView
-                ivProfilePic.setImageBitmap(bitmap);
-            } catch (Exception e) {
-                e.printStackTrace();
+                photoFile = createImageFile();
             }
+            catch (IOException ex) {
+                // Error occurred while creating the File
+                System.out.print("Error creating file path");
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(getApplicationContext(), "mdad.localdata.trakit", photoFile);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+            }
+
+        } else {
+            Toast.makeText(getApplicationContext(), "Camera not available", Toast.LENGTH_SHORT).show();
         }
     }
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "MDAD_" + timeStamp + "_";
+        File storageDir = getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, /* prefix */ ".jpg", /* suffix */ storageDir /* directory */);
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+    private void showImageSourceDialog() {
+        String[] options = {"Take Photo", "Choose from Gallery"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this); // or just this
+        builder.setTitle("Select Image Source");
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (which == 0) {
+                    // Take Photo
+                    takePhoto();
+                } else if (which == 1) {
+                    // Choose from Gallery
+                    pickFromGallery();
+                }
+            }
+        });
+        builder.show();
+    }
+
+    private void pickFromGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                File imgFile = new File(currentPhotoPath);
+                if (imgFile.exists()) {
+                    selectedImageBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                    ivProfilePic.setImageBitmap(selectedImageBitmap);
+                    base64ImgString = ImageUtils.encodeToBase64(selectedImageBitmap, Bitmap.CompressFormat.PNG, 100);
+                }
+                // Handle the photo taken by the camera
+            } else if (requestCode == REQUEST_IMAGE_PICK) {
+                // Handle the photo selected from the gallery
+                Uri selectedImageUri = data.getData();
+                try {
+                    // Get the selected image as a Bitmap
+                    selectedImageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
+                    ivProfilePic.setImageBitmap(selectedImageBitmap);
+                    base64ImgString = ImageUtils.encodeToBase64(selectedImageBitmap, Bitmap.CompressFormat.PNG, 100);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            //Bitmap resizeImg = ImageUtils.editImgSize(selectedImageBitmap, 380, 600);
+//            Bitmap resizeImg = ImageUtils.scaleToTargetSize(selectedImageBitmap, 100 * 1024, Bitmap.CompressFormat.PNG);
+//            base64Img = ImageUtils.encodeToBase64(resizeImg, Bitmap.CompressFormat.PNG, 100);
+        }
+    }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        // Match the request 'pic id with requestCode
+//        if (requestCode == CAMERA_CAPTURE_REQUEST_CODE && resultCode == RESULT_OK && data != null && data.getData() != null) {
+//            Uri imageUri = data.getData();
+//            try {
+//                // Get the selected image as a Bitmap
+//                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
+//                bitmap = ImageUtils.editImgSize(bitmap, 120, 120);
+//                base64ImgString = ImageUtils.encodeToBase64(bitmap, Bitmap.CompressFormat.PNG, 100);
+//                // Set the image to an ImageView
+//                ivProfilePic.setImageBitmap(bitmap);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
     private void getUserDetails(String id){
         userController.getUserDetails(id, new ICallback() {
@@ -203,32 +301,5 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
     }
-
-//    private String convertBitmapToBase64(Bitmap bitmap) {
-//        if (bitmap == null) {
-//            throw new IllegalArgumentException("Bitmap is null");
-//        }
-//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//        boolean success = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-//        if (!success) {
-//            throw new RuntimeException("Failed to compress bitmap");
-//        }
-//        byte[] byteArray = byteArrayOutputStream.toByteArray();
-//        return Base64.encodeToString(byteArray, Base64.NO_WRAP); // Use NO_WRAP for consistency
-//    }
-//
-//    public Bitmap convertBase64ToBitmap(String base64String) {
-//        if (base64String == null || base64String.isEmpty()) {
-//            throw new IllegalArgumentException("Base64 string is null or empty");
-//        }
-//        try {
-//            byte[] decodedString = Base64.decode(base64String, Base64.NO_WRAP); // Use NO_WRAP for consistency
-//            return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-//        } catch (IllegalArgumentException e) {
-//            e.printStackTrace();
-//            System.out.println("Failed to decode Base64 string");
-//            return null;
-//        }
-//    }
 
 }

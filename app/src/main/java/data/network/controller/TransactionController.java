@@ -23,6 +23,7 @@ public class TransactionController {
         this.apiController = new ApiController(context);
     }
 
+    //functions to perform crud operations for transactions, with appropriate error handling
     public void getAllTransactions(String monthYear, ICallback callback){
         String formattedMonthYear = DateUtils.convertToYearMonth(monthYear);
         apiController.getAllTransactions(formattedMonthYear, response->{
@@ -76,6 +77,7 @@ public class TransactionController {
         });
     }
 
+    //fetch the transactions based on the month filter
     public void getAllTransactionsByDate(String day, ICallback callback){
         apiController.getAllTransactionsByDate(day, response->{
             try{
@@ -94,6 +96,7 @@ public class TransactionController {
         });
     }
 
+    //fetch the transactions that will repeat each month
     public void getAllRecurringTransactions(String monthYear, Boolean recurring, ICallback callback){
         String formattedMonthYear = DateUtils.convertToYearMonth(monthYear);
         apiController.getAllRecurringTransactions(formattedMonthYear, recurring, response -> {
@@ -113,6 +116,7 @@ public class TransactionController {
         });
     }
 
+    //if transactions exist for specific category id, then the category cannot be deleted
     public void getTransactionsByCatId(String catId, ICallback callback){
         apiController.getTransactionsByCatId(catId, response-> {
             try{

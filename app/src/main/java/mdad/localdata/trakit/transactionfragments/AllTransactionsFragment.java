@@ -119,7 +119,6 @@ public class AllTransactionsFragment extends Fragment {
         currentMonth = Calendar.getInstance().get(Calendar.MONTH);
         monthName = new DateFormatSymbols().getMonths()[currentMonth];
         int fragmentId = this.getId();
-//        currentFragment = requireActivity().getSupportFragmentManager().getFragment()
         transTopAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -142,6 +141,7 @@ public class AllTransactionsFragment extends Fragment {
             }
         });
 
+        //drop down list filter of past 3 years till current month
         List<String> monthYearList = new ArrayList<>();
         for (int year = currentYear; year >= currentYear - 3; year--) {
             int monthLimit = (year == currentYear) ? currentMonth + 1 : 12;
@@ -172,6 +172,7 @@ public class AllTransactionsFragment extends Fragment {
                 // Handle no selection if needed
             }
         });
+        //check box to filter by recurring bills instead
         Recurring.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -181,6 +182,7 @@ public class AllTransactionsFragment extends Fragment {
         });
     }
 
+    //function to populate the transaction custom adapter based on the filters
     public void transList(){
         ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
         if (isRecurring){

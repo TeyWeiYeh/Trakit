@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 public class FileUtils {
+    //encode and decode the excel file that is passed between server and client as base64 string
     public static String encodeFileToBase64(HSSFWorkbook workbook) {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -25,6 +26,7 @@ public class FileUtils {
         }
     }
 
+    //decode the base64 string file
     public static HSSFWorkbook decodeBase64ToWorkbook(String base64String) {
         try {
             byte[] decodedBytes = Base64.decode(base64String, Base64.DEFAULT);

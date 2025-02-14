@@ -40,13 +40,15 @@ public class ApiController {
         this.context = context;
         RequestQueue requestQueue = VolleySingleton.getInstance(context).getRequestQueue();
     }
-
+    //the endpoints for each entity
     String user_url = MainActivity.ipBaseUrl + "/user.php";
     String cat_url = MainActivity.ipBaseUrl + "/category.php";
     String trans_url = MainActivity.ipBaseUrl + "/transaction.php";
     String budget_url = MainActivity.ipBaseUrl + "/budget.php";
     String wallet_url = MainActivity.ipBaseUrl + "/wallet.php";
     String monthlyReport_url = MainActivity.ipBaseUrl + "/monthlyReport.php";
+
+    //below is the list of all the functions for every entity that communicate with the database
 
     //User API's
     public void getUserDetails(String id, Response.Listener<String> successListener, Response.ErrorListener errorListener){
@@ -328,6 +330,19 @@ public class ApiController {
         VolleySingleton.getInstance(context).addToRequestQueue(getAllBudgetsRequest);
     }
 
+    public void getAllBudgetsByDate(String date, Response.Listener<String> successListener, Response.ErrorListener errorListener){
+        String url = budget_url + "?date=" + date;
+        StringRequest getAllBudgetsByDateRequest = new StringRequest(Request.Method.GET, url, successListener, errorListener){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + getStoredToken());
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(context).addToRequestQueue(getAllBudgetsByDateRequest);
+    }
+
     public void createBudget(Budget budget, Response.Listener<JSONObject> successListener, Response.ErrorListener errorListener){
         JSONObject budgetObject = new JSONObject();
         Date start_date, end_date;
@@ -462,6 +477,7 @@ public class ApiController {
 
     }
 
+    //get the token that is stored in shared preferences
     private String getStoredToken() {
         SharedPreferences sharedPreferences = context.getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         return sharedPreferences.getString("token", null);

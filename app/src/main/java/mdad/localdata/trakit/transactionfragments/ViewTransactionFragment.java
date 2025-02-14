@@ -100,6 +100,7 @@ public class ViewTransactionFragment extends Fragment {
     Boolean boolRecc;
 //    AutoCompleteTextView catDropdownListValue;
     public void onViewCreated(View view, Bundle savedInstanceState){
+        //retrieve the data from the custom adapter
         Bundle retrieveInfo = getArguments();
         topAppBar = view.findViewById(R.id.topAppBar);
         type = retrieveInfo.getString("type");
@@ -157,6 +158,7 @@ public class ViewTransactionFragment extends Fragment {
                                     Fragment allTransFrag = new AllTransactionsFragment();
                                     FragmentManager fm = getParentFragmentManager();
                                     fm.beginTransaction().replace(R.id.trans_child_container, allTransFrag).commit();
+                                    Toast.makeText(getContext(), result.toString(), Toast.LENGTH_LONG).show();
                                 }
 
                                 @Override

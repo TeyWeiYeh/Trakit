@@ -80,7 +80,7 @@ public class UpdateBudgetFragment extends Fragment {
     }
 
     EditText etUpdateName, etUpdateAmt, etUpdateStartDate, etUpdateEndDate;
-    String id, amt, start_date, end_date, name;
+    String id, amt, start_date, end_date, name, fullName;
     MaterialToolbar topAppBar;
     Button btnUpdateDelete, btnUpdateUpdate;
     BudgetController budgetController;
@@ -94,6 +94,7 @@ public class UpdateBudgetFragment extends Fragment {
         amt = bundle.getString("limit");
         start_date = bundle.getString("start_date");
         end_date = bundle.getString("end_date");
+        fullName = bundle.getString("fullName");
         etUpdateAmt = view.findViewById(R.id.etUpdateAmount);
         etUpdateName = view.findViewById(R.id.etUpdateName);
         etUpdateStartDate = view.findViewById(R.id.etUpdateStartDate);
@@ -102,7 +103,7 @@ public class UpdateBudgetFragment extends Fragment {
         btnUpdateDelete = view.findViewById(R.id.btnUpdateDelete);
         btnUpdateUpdate = view.findViewById(R.id.btnUpdateUpdate);
         etUpdateAmt.setText(amt);
-        etUpdateName.setText(name);
+        etUpdateName.setText(fullName);
         etUpdateStartDate.setText(start_date);
         etUpdateEndDate.setText(end_date);
         topAppBar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -113,6 +114,7 @@ public class UpdateBudgetFragment extends Fragment {
                 fm.beginTransaction().replace(R.id.home_fragment, goToHomeFragment).commit();
             }
         });
+        //button to delete the budget, with confirmation dialog
         btnUpdateDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -149,6 +151,7 @@ public class UpdateBudgetFragment extends Fragment {
             }
         });
 
+        //button to update the budget and validate all fields are filled
         btnUpdateUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

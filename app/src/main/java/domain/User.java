@@ -18,6 +18,7 @@ public class User {
         this.base64_profile_pic = base64_profile_pic;
     }
 
+    //setter and getters for the user entity
     public String getId() { return id;}
     public void setId(String id){this.id = id;}
     public String getEmail() {return email;}

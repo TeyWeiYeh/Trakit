@@ -173,6 +173,8 @@ public class AddFragment extends Fragment {
                     return false;
             }
         });
+
+        //radio buttons to choose which type of expense
         radioGroup.check(R.id.expenseButton);
         getCategoriesByType(type);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -187,6 +189,7 @@ public class AddFragment extends Fragment {
             }
             getCategoriesByType(type);
         });
+        //date picker for the transaction
         MaterialDatePicker<Long> materialDatePicker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText("Select Date")
                 .build();
@@ -219,6 +222,7 @@ public class AddFragment extends Fragment {
                 showFullScreenDialog();
             }
         });
+        //if selected, it will repeat every month
         btnRecurring.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -257,6 +261,7 @@ public class AddFragment extends Fragment {
         });
     }
 
+    //user to choose between take photo or choose from gallery their image
     private void showImageSourceDialog() {
         String[] options = {"Take Photo", "Choose from Gallery"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -276,6 +281,7 @@ public class AddFragment extends Fragment {
         builder.show();
     }
 
+    //function to take photo
     private void takePhoto() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (intent.resolveActivity(getContext().getPackageManager()) != null) {
@@ -299,11 +305,13 @@ public class AddFragment extends Fragment {
         }
     }
 
+    //function to choose image from gallery
     private void pickFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, REQUEST_IMAGE_PICK);
     }
 
+    //handles the request to either take a photo or pick from gallery
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -330,6 +338,7 @@ public class AddFragment extends Fragment {
         }
     }
 
+    //store the image thats created
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -340,6 +349,7 @@ public class AddFragment extends Fragment {
         return image;
     }
 
+    //function to view the selected image
     private void showFullScreenDialog() {
         Dialog dialog = new Dialog(getContext());
 
@@ -367,6 +377,7 @@ public class AddFragment extends Fragment {
         dialog.show();
     }
 
+    //get all the categories base on the type of transaction
     public void getCategoriesByType(String type){
         categoryController.getAllCategories(type, new ICallback() {
             @Override
@@ -411,6 +422,7 @@ public class AddFragment extends Fragment {
         });
     }
 
+    //function to create transaction
     public void createTransaction(Transaction transaction){
         transactionController.createTransaction(transaction, new ICallback() {
             @Override

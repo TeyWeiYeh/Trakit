@@ -23,9 +23,8 @@
 
             <TextView
                 android:id="@+id/tvName"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:text="Japan"
@@ -100,6 +99,7 @@
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:progressTint="@color/currGreen"
             android:layout_marginVertical="8dp"/>
 
         <!-- Spent Amount Section -->

@@ -26,4 +26,14 @@ public class StringUtils {
         }
         return text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
     }
+
+    public static String trimString(String name){
+        String trimName = "";
+        if (name.length() > 5) {
+             trimName = name.substring(0, 5) + "...";
+            return trimName;
+        }
+        else
+            return name;
+    }
 }

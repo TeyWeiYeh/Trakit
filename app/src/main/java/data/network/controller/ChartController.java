@@ -19,6 +19,7 @@ public class ChartController {
         this.apiController = new ApiController(context);
     }
 
+    //functions to get the line chart and pie chart data, with appropriate error handling
     public void getLineChartData(String year, ICallback callback){
         apiController.getLineChartData(year, response->{
             try{

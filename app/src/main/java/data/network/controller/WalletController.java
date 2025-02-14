@@ -20,6 +20,8 @@ public class WalletController {
         this.context = context;
         this.apiController = new ApiController(context);
     }
+
+    //get the wallet data that can be filtered base on each month
     public void getWalletData(String monthYear, ICallback callback){
         String formattedMonthYear = DateUtils.convertToYearMonth(monthYear);
         apiController.getWalletData(formattedMonthYear, response -> {

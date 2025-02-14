@@ -90,11 +90,9 @@ public class LoginFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_login, container, false);
     }
 
-    Button btnLogin, btnGetToken;
-    TextView tvToken, tvSignup;
+    Button btnLogin;
+    TextView tvSignup;
     EditText etEmail, etPassword;
-    private RequestQueue mRequestQueue;
-    private StringRequest mStringRequest;
     private static String url_login = MainActivity.ipBaseUrl + "/login.php";
     public void onViewCreated(View view, Bundle savedInstanceState){
 
@@ -102,6 +100,8 @@ public class LoginFragment extends Fragment {
         etEmail = (EditText) view.findViewById(R.id.etEmail);
         etPassword = (EditText) view.findViewById(R.id.etCat);
         tvSignup = (TextView) view.findViewById(R.id.tvToSignup);
+
+        //login button which calls the login function and ensure all fields are filled in
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -113,10 +113,11 @@ public class LoginFragment extends Fragment {
                     params_login.put("password", password);
                     Login(url_login,params_login);
                 } else {
-                    Toast.makeText(getContext(), "Please fill up all fields", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+        //navigate to the sign up page
         tvSignup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -129,6 +130,7 @@ public class LoginFragment extends Fragment {
         });
     }
 
+    //login function
     public void Login(String url, Map params){
         RequestQueue requestQueue = VolleySingleton.getInstance(getContext()).getRequestQueue();
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
@@ -174,6 +176,7 @@ public class LoginFragment extends Fragment {
         VolleySingleton.getInstance(getContext()).addToRequestQueue(stringRequest);
     }
 
+    //store the token in shared preferences when login success
     public void storeToken(String token) {
         SharedPreferences sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         sharedPreferences.edit().putString("token", token).apply();

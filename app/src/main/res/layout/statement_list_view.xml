@@ -8,7 +8,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:paddingHorizontal="8dp"
+        android:layout_margin="0dp">
 
         <!-- TextView for Name -->
         <TextView
@@ -31,8 +32,6 @@
             android:id="@+id/btnDownload"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
             android:backgroundTint="@android:color/transparent"
             app:icon="@drawable/download_24"
             app:iconSize="30dp"

@@ -19,7 +19,7 @@ public class UserController {
         this.context = context;
         this.apiController = new ApiController(context);
     }
-
+    //function to get user details and update the user details
     public void getUserDetails(String id, ICallback callback){
         apiController.getUserDetails(id, response->{
             try{

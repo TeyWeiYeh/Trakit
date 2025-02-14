@@ -139,6 +139,7 @@ public class ChartFragment extends Fragment {
         token = sharedPreferences.getString("token", null);
         getChartData(String.valueOf(currYear), pieChartColorArray);
 
+        //button to go to previous year
         btnPrevYear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -147,6 +148,7 @@ public class ChartFragment extends Fragment {
                 getChartData(String.valueOf(currYear),pieChartColorArray);
             }
         });
+        //button to go to next year
         btnNextYear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -174,6 +176,7 @@ public class ChartFragment extends Fragment {
             }
         });
     }
+    //get the data of the line chart as well as the pie chart base on the filtered year
     public void getChartData(String year, int[] pieChartColorArray){
         chartController.getLineChartData(year, new ICallback() {
             @Override

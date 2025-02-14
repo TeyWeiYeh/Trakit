@@ -18,6 +18,7 @@ public class MonthlyReport {
         this.name = name;
     }
 
+    //setter and getters for the monthly report entity
     public HSSFWorkbook getExcelFile(){return excelFile;}
     public void setExcelFile(HSSFWorkbook excelFile){this.excelFile = excelFile;}
     public String getMonthYear() {return monthYear;}

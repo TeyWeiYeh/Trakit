@@ -40,6 +40,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import data.network.ICallback;
+import data.network.controller.BudgetController;
 import data.network.controller.MonthlyReportController;
 import data.network.controller.TransactionController;
 import data.network.controller.WalletController;
@@ -79,7 +80,8 @@ public class RecurringBillWorker extends Worker {
 
     SharedPreferences sharedPreferences;
     MonthlyReport monthlyReport;
-
+    BudgetController budgetController;
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     public RecurringBillWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -94,112 +96,22 @@ public class RecurringBillWorker extends Worker {
         selectedMonthYear = months[c.get(Calendar.MONTH)] + " " + year;
         sharedPreferences = getApplicationContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         token = sharedPreferences.getString("token", null);
+        budgetController = new BudgetController(context);
     }
 
-//    @NonNull
-//    @Override
-//    public Result doWork() {
-//        final CountDownLatch latch = new CountDownLatch(1);
-//        final Result[] workerResult = {Result.success()};
-//        totalTransactions = 0; // Initialize to 0
-//
-//        transactionController.getAllTransactionsByDate(formattedDate, new ICallback() {
-//            @Override
-//            public void onSuccess(Object result) {
-//                try {
-//                    transListArray = (JSONArray) result;
-//                    totalTransactions = transListArray.length();
-//                    if (transListArray.length() == 0) {
-//                        workerResult[0] = Result.success();
-//                        latch.countDown();
-//                        return;
-//                    }
-//
-//
-//                    for (int i = 0; i < transListArray.length(); i++) {
-//                        JSONObject transaction = transListArray.getJSONObject(i);
-//                        // Extract transaction details
-//                        Transaction newTransaction = new Transaction(
-//                                Float.parseFloat(transaction.getString("amount")),
-//                                transaction.getString("description"),
-//                                formattedCurrDate,
-//                                false,
-//                                transaction.getString("categoryId"),
-//                                transaction.getString("image")
-//                        );
-//
-//                        transactionController.createTransaction(newTransaction, new ICallback() {
-//                            @Override
-//                            public void onSuccess(Object result) {
-//                                processedTransactions++;
-//                                if (processedTransactions == totalTransactions) {
-//                                    workerResult[0] = Result.success();
-//                                    Log.d("transList", String.valueOf(transListArray));
-//                                    latch.countDown();
-//                                }
-//                            }
-//
-//                            @Override
-//                            public void onError(String error) {
-//                                workerResult[0] = Result.failure();
-//                                latch.countDown();
-//                            }
-//
-//                            @Override
-//                            public void onAuthFailure(String message) {
-//                                workerResult[0] = Result.failure();
-//                                latch.countDown();
-//                            }
-//                        });
-//                    }
-//
-//                } catch (Exception e) {
-//                    workerResult[0] = Result.failure();
-//                    latch.countDown();
-//                }
-//            }
-//
-//            @Override
-//            public void onError(String error) {
-//                workerResult[0] = Result.failure();
-//                latch.countDown();
-//            }
-//
-//            @Override
-//            public void onAuthFailure(String message) {
-//                workerResult[0] = Result.failure();
-//                latch.countDown();
-//            }
-//        });
-////        createExcelFileWhole();
-//
-//        try {
-//            latch.await();
-//        } catch (InterruptedException e) {
-//            return Result.retry();
-//        }
-//
-//        // Send notification only if successful and transactions were processed
-//        if (Objects.equals(workerResult[0], Result.success()) && transListArray.length() > 0) {
-//            NotificationHelper.sendNotification(
-//                    getApplicationContext(),
-//                    "Recurring Bills Added",
-//                    "Your recurring bills have been added successfully."
-//            );
-//        }
-//
-//        return workerResult[0];
-//    }
+    //task for the work manager
 @NonNull
 @Override
 public Result doWork() {
     final CountDownLatch latch = new CountDownLatch(1);
-    final Result[] workerResult = {Result.success()};
     final AtomicBoolean hasError = new AtomicBoolean(false);
 
     totalTransactions = 0;
     processedTransactions = 0;
 
+    String budgetFormattedDate = sdf.format(new Date());
+
+    //get the transactions that are repeat, and create new records using today's date
     transactionController.getAllTransactionsByDate(formattedDate, new ICallback() {
         @Override
         public void onSuccess(Object result) {
@@ -208,7 +120,9 @@ public Result doWork() {
                 totalTransactions = transListArray.length();
 
                 if (totalTransactions == 0) {
+                    //check if today is the last day of the month, then create the report
                     createExcelFileWhole();
+                    deleteExpiredBudget(budgetFormattedDate);
                     latch.countDown();
                     return;
                 }
@@ -230,6 +144,7 @@ public Result doWork() {
                             processedTransactions++;
                             if (processedTransactions == totalTransactions) {
                                 createExcelFileWhole();
+                                deleteExpiredBudget(budgetFormattedDate);
                                 latch.countDown();
                             }
                         }
@@ -284,6 +199,7 @@ public Result doWork() {
         return Result.failure();
     }
 
+    //notify the user once the process completes
     if (totalTransactions > 0) {
         NotificationHelper.sendNotification(
                 getApplicationContext(),
@@ -295,27 +211,7 @@ public Result doWork() {
     return Result.success();
 }
 
-//    public void createExcelFileWhole(){
-//        getWallet();
-////        monthlyReportController.getMonthlyReportData(monthYearSql, new ICallback() {
-////            @Override
-////            public void onSuccess(Object result) {
-////                dataResponse = (JSONArray) result;
-////                Log.d("dataResponse", String.valueOf(dataResponse));
-////                createExcelFile();
-////            }
-////
-////            @Override
-////            public void onError(String error) {
-////                Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
-////            }
-////
-////            @Override
-////            public void onAuthFailure(String message) {
-////            }
-////        });
-//    }
-
+//create the excel, at the end of every month
     public void createExcelFile() {
         try {
             // Decode the token payload
@@ -330,11 +226,11 @@ public Result doWork() {
             // Prepare header and values
             String[] headers = {"Trakit Monthly Report", "Username:", "Month:", "", "Total Saved:", "Total Spent:"};
             String[] dataHeader = {"Date", "Category", "Type", "Amount", "Recurring", ""};
-            String[] headersValue = {"",username, monthYearSql, "", "$" + income, "$" + expense};
+            String[] headersValue = {"",username, monthYearSql, "", "$" + income, "$" + expense}; //change to monthYearSql
 
             // Create a new Excel workbook
             workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet(monthYearSql +"-"+ "report");
+            HSSFSheet sheet = workbook.createSheet(monthYearSql +"-"+ "report"); //change to monthYearSql
             sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 1));
             sheet.addMergedRegion(new CellRangeAddress(2, 2, 0, 1));
             sheet.addMergedRegion(new CellRangeAddress(4, 4, 0, 1));
@@ -360,7 +256,7 @@ public Result doWork() {
                 row.createCell(3).setCellValue(obj.optString("amount"));
                 row.createCell(4).setCellValue(obj.optBoolean("recurring"));
             }
-            monthlyReport = new MonthlyReport(workbook, monthYearSql, workbookName);
+            monthlyReport = new MonthlyReport(workbook, monthYearSql, workbookName); //change to monthYearSql
             monthlyReportController.createMonthlyReport(monthlyReport, new ICallback() {
                 @Override
                 public void onSuccess(Object result) {
@@ -381,41 +277,9 @@ public Result doWork() {
         }
     }
 
-//    public void storeWorkBook(HSSFWorkbook hssfWorkbook){
-//        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), workbookName+".xlsx");
-//        try {
-//            FileOutputStream fileOutputStream = new FileOutputStream(file);
-//            hssfWorkbook.write(fileOutputStream);
-//            hssfWorkbook.close();
-//            NotificationHelper.sendNotification(getApplicationContext(), "Excel Downloaded", "Download complete.");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            Toast.makeText(getApplicationContext(), "Error exporting Excel", Toast.LENGTH_SHORT).show();
-//        }
-//    }
-
-//    public void getReportData(String monthYear){
-//        monthlyReportController.getMonthlyReportData(monthYear, new ICallback() {
-//            @Override
-//            public void onSuccess(Object result) {
-//                dataResponse = (JSONArray) result;
-//                Log.d("dataReponse", String.valueOf(dataResponse));
-//            }
-//
-//            @Override
-//            public void onError(String error) {
-//                Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
-//            }
-//
-//            @Override
-//            public void onAuthFailure(String message) {
-//            }
-//        });
-//    }
-
     public void createExcelFileWhole(){
         if (today == lastDayOfMonth){
-            walletController.getWalletData(selectedMonthYear, new ICallback() {
+            walletController.getWalletData(selectedMonthYear, new ICallback() { //change to selectedMonthYear
                 @Override
                 public void onSuccess(Object result) {
                     try{
@@ -427,11 +291,10 @@ public Result doWork() {
                         DecimalFormat df = new DecimalFormat("0.00");
                         df.setMaximumFractionDigits(2);
                         balance = df.format(floatBalance);
-                        monthlyReportController.getMonthlyReportData(monthYearSql, new ICallback() {
+                        monthlyReportController.getMonthlyReportData(monthYearSql, new ICallback() { //change to monthYearSql
                             @Override
                             public void onSuccess(Object result) {
                                 dataResponse = (JSONArray) result;
-                                Log.d("dataResponse", String.valueOf(dataResponse));
                                 createExcelFile();
                             }
 
@@ -458,5 +321,49 @@ public Result doWork() {
                 }
             });
         }
+    }
+
+    //check for any expired budget and remove them
+    public void deleteExpiredBudget(String date){
+        budgetController.getAllBudgetsByDate(date, new ICallback() {
+            @Override
+            public void onSuccess(Object result) {
+                try{
+                    JSONArray expiredBudgets = (JSONArray) result;
+                    for(int i=0;i<expiredBudgets.length();i++){
+                        JSONObject transaction = expiredBudgets.getJSONObject(i);
+                        String budgetId = transaction.getString("id");
+                        budgetController.deleteBudget(budgetId, new ICallback() {
+                            @Override
+                            public void onSuccess(Object result) {
+
+                            }
+
+                            @Override
+                            public void onError(String error) {
+
+                            }
+
+                            @Override
+                            public void onAuthFailure(String message) {
+
+                            }
+                        });
+                    }
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+
+            }
+
+            @Override
+            public void onAuthFailure(String message) {
+
+            }
+        });
     }
 }

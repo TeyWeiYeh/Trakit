@@ -20,7 +20,7 @@ public class BudgetController {
         this.context = context;
         this.apiController = new ApiController(context);
     }
-
+    //functions to perform crud operations for budgets, with appropriate error handling
     public void getAllBudgets(ICallback callback){
         apiController.getAllBudgets(response -> {
             try{
@@ -68,6 +68,24 @@ public class BudgetController {
                 callback.onAuthFailure("Authentication failed. Please login again");
             else
                 callback.onError("Failed to delete Budget");
+        });
+    }
+
+    public void getAllBudgetsByDate(String date, ICallback callback){
+        apiController.getAllBudgetsByDate(date, response -> {
+            try{
+                JSONObject responseObject = new JSONObject(response);
+                JSONArray data = new JSONArray(responseObject.optString("data"));
+                callback.onSuccess(data);
+            } catch (JSONException e){
+                e.printStackTrace();
+                Toast.makeText(context, "Response error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }, error-> {
+            if (error instanceof AuthFailureError)
+                callback.onAuthFailure("Authentication failed. Please login again");
+            else
+                callback.onError("Failed to retrieve Budgets");
         });
     }
 }

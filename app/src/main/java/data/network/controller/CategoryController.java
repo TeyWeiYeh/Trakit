@@ -5,11 +5,14 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.ClientError;
+import com.android.volley.VolleyError;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +29,7 @@ public class CategoryController {
         this.apiController = new ApiController(context);
     }
 
+    //functions to perform crud operations for categories, with appropriate error handling
     public void getAllCategories(String type, ICallback callback){
         apiController.getAllCategory(type, response -> {
             try {
@@ -45,15 +49,24 @@ public class CategoryController {
         });
     }
 
-    public void createCategory(Category category, ICallback callback){
-        apiController.createCategory(category, response-> {
+    public void createCategory(Category category, ICallback callback) {
+        apiController.createCategory(category, response -> {
             callback.onSuccess("Category created successfully");
-        }, error-> {
-            if (error instanceof AuthFailureError)
-                // Notify the callback about the authentication failure
+        }, error -> {
+            if (error instanceof AuthFailureError) {
                 callback.onAuthFailure("Authentication failed. Please log in again.");
-            else
-                callback.onError("Failed to create category: " + error.getMessage());
+            }
+            if (error.networkResponse!= null){
+                if (error.networkResponse.statusCode == 409) {
+                    callback.onError("Category already exist");
+                }
+                else {
+                    callback.onError("Failed to create category");
+                }
+            }
+            else {
+                callback.onError("Server error");
+            }
         });
     }
 
@@ -75,11 +88,5 @@ public class CategoryController {
         }, error -> {
             callback.onError("Failed to delete Category");
         });
-    }
-
-    private List<Category> parseCategories(JSONArray response) {
-        List<Category> categories = new ArrayList<>();
-        // Parse JSON and create Category objects
-        return categories;
     }
 }

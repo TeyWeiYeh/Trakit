@@ -121,12 +121,11 @@ public class CategoryFragment extends Fragment {
     }
 
     MaterialToolbar topAppBar;
-    String url = MainActivity.ipBaseUrl + "/category/create.php?type=";
-    String token, id, name, userId, transactionCount;
+    String token, id, name, userId, transactionCount, trimName;
     ListView category_list;
     String type = Category.Type.EXPENSE.toString();
     EditText etCat, etCreateCat;
-    TextView cid, tvUserId;
+    TextView cid, tvUserId, tvRecordCount;
     Button btnSave, btnDelete, btnOpenAddPopup, btnAdd, btnCancel;
     RadioGroup radioGroup;
     RadioButton expenseButton, incomeButton;
@@ -142,7 +141,6 @@ public class CategoryFragment extends Fragment {
         sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         token = sharedPreferences.getString("token", null);
         topAppBar = view.findViewById(R.id.topAppBar);
-        FragmentManager fm = getParentFragmentManager();
         btnOpenAddPopup = (Button) view.findViewById(R.id.add);
         //implement logout and navigate to profile activity
         topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
@@ -170,6 +168,7 @@ public class CategoryFragment extends Fragment {
         category_list = view.findViewById(R.id.category_list);
         radioGroup.check(R.id.expenseButton);
         catList(type);
+        //radio group to toggle between expense and income category type
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.expenseButton) {
                 expenseButton.setBackgroundResource(R.drawable.rounded_left_selected);
@@ -182,6 +181,8 @@ public class CategoryFragment extends Fragment {
             }
             catList(type);
         });
+
+        //add new category
         btnOpenAddPopup.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ClickableViewAccessibility")
             @Override
@@ -210,37 +211,42 @@ public class CategoryFragment extends Fragment {
                 btnAdd.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-//                        Category.Type catType = expenseButton.getText().toString().equals("Expense") ? Category.Type.EXPENSE : Category.Type.INCOME;
                         Category.Type catType = radioGroup.getCheckedRadioButtonId() == R.id.expenseButton
                                 ? Category.Type.EXPENSE : Category.Type.INCOME;
-                        Category newCat = new Category(etCreateCat.getText().toString(), catType);
-                        System.out.println("Create cat name: " + newCat.name + " Cat type: " + catType);
-                        categoryController.createCategory(newCat, new ICallback() {
-                            @Override
-                            public void onSuccess(Object result) {
-                                createPopupWindow.dismiss();
-                                catList(catType.toString());
-                                Toast.makeText(requireContext(), "Created Category Successfully", Toast.LENGTH_LONG).show();
-                            }
+                        if (etCreateCat.getText().toString().isEmpty()){
+                            Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_LONG).show();
+                        }
+                        else {
+                            Category newCat = new Category(etCreateCat.getText().toString(), catType);
+                            categoryController.createCategory(newCat, new ICallback() {
+                                @Override
+                                public void onSuccess(Object result) {
+                                    createPopupWindow.dismiss();
+                                    catList(catType.toString());
+                                    Toast.makeText(requireContext(), "Created Category Successfully", Toast.LENGTH_LONG).show();
+                                }
 
-                            @Override
-                            public void onError(String error) {
-                                Toast.makeText(requireContext(), "Failed to create category", Toast.LENGTH_LONG).show();
-                            }
+                                @Override
+                                public void onError(String error) {
+                                    Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
+                                }
 
-                            @Override
-                            public void onAuthFailure(String message) {
-                                Intent i = new Intent(getContext(), AuthActivity.class);
-                                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(i);
-                            }
-                        });
+                                @Override
+                                public void onAuthFailure(String message) {
+                                    Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
+                                    //prevent user from back navigation
+                                    goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(goToLoginPage);
+                                }
+                            });
+                        }
                     }
                 });
             }
         });
     }
 
+    //function to populate the category list base on the type (income or expense)
     public void catList(String type) {
         ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
         categoryController.getAllCategories(type, new ICallback() {
@@ -257,7 +263,9 @@ public class CategoryFragment extends Fragment {
                         id = item.getString("id");
                         name = item.getString("name");
                         if (name.length() > 10) {
-                            name = name.substring(0, 5) + "...";
+                            trimName = name.substring(0, 5) + "...";
+                        } else {
+                            trimName = name;
                         }
                         String type = item.getString("type");
                         userId = item.getString("userId");
@@ -266,14 +274,16 @@ public class CategoryFragment extends Fragment {
                         HashMap<String, String> hashMap = new HashMap<>();
                         hashMap.put("id", id);
                         hashMap.put("name", name);
+                        hashMap.put("trimName", trimName);
                         hashMap.put("type", type);
                         hashMap.put("userId", userId);
                         hashMap.put("trans_count", transactionCount);
                         arrayList.add(hashMap);
                     }
 
-                    String[] from = {"id", "name", "trans_count", "userId"}; // string array
+                    String[] from = {"id", "trimName", "trans_count", "userId"}; // string array
                     int[] to = {R.id.catId, R.id.tvName, R.id.tvNumRecord, R.id.tvUserId}; // int array of views id's
+                    //populate the categories in a list view
                     SimpleAdapter simpleAdapter = new SimpleAdapter(getContext(), arrayList, R.layout.list_view_items, from, to) {
                         @Override
                         public View getView(int position, View convertView, ViewGroup parent) {
@@ -281,18 +291,22 @@ public class CategoryFragment extends Fragment {
                             Button btnEditCat = view.findViewById(R.id.btnEditCat);
                             TextView tvNumRecord = view.findViewById(R.id.tvNumRecord);
                             HashMap<String, String> item = (HashMap<String, String>) arrayList.get(position);
+                            String catName = item.get("name");
                             String popupUserId = item.get("userId");
                             String popupTransCount = item.get("trans_count");
                             Integer intPopupTransCount = Integer.parseInt(popupTransCount);
-                            if (intPopupTransCount == 0){
+                            //check if category has records
+                            if (intPopupTransCount == 0) {
                                 tvNumRecord.setText("No");
-                            } else if (popupUserId.equals("null")){
-                                btnEditCat.setVisibility(View.INVISIBLE);
                             }
-                            else{
+                            //if the category has no user id, it is a default category which cannot be deleted
+                            if (popupUserId == null || popupUserId.trim().isEmpty() || popupUserId.equalsIgnoreCase("null")) {
+                                btnEditCat.setVisibility(View.INVISIBLE);
+                            } else {
                                 btnEditCat.setVisibility(View.VISIBLE);
                                 tvNumRecord.setText(popupTransCount);
                             }
+                            //button to edit the category
                             btnEditCat.setOnClickListener(v -> {
                                 LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                                 View popupView = inflater.inflate(R.layout.popup, null);
@@ -300,7 +314,9 @@ public class CategoryFragment extends Fragment {
                                 btnSave = popupView.findViewById(R.id.btnSave);
                                 btnDelete = popupView.findViewById(R.id.btnDelete);
                                 tvUserId = popupView.findViewById(R.id.tvUserId);
-//                                String popupUserId = tvUserId.getText().toString();
+                                tvRecordCount = popupView.findViewById(R.id.tvRecordCount);
+                                tvRecordCount.setText(popupTransCount);
+                                etCat.setText(catName);
                                 String catId = ((TextView) view.findViewById(R.id.catId)).getText().toString();
                                 Category.Type catType = expenseButton.getText().toString().equals("Expense") ? Category.Type.EXPENSE : Category.Type.INCOME;
                                 cid = popupView.findViewById(R.id.cid);
@@ -314,28 +330,34 @@ public class CategoryFragment extends Fragment {
                                 popupWindow.setElevation(10); // Add shadow if supported
                                 dimBehind(popupWindow);
                                 btnSave.setOnClickListener(view1 -> {
-                                    Category updateCat = new Category(cid.getText().toString(), etCat.getText().toString(), catType);
-                                    categoryController.updateCategory(catId, updateCat, new ICallback() {
-                                        @Override
-                                        public void onSuccess(Object result) {
-                                            popupWindow.dismiss();
-                                            catList(type);
-                                            Toast.makeText(getContext(), result.toString(), Toast.LENGTH_LONG).show();
-                                        }
+                                    if (etCat.getText().toString().isEmpty()){
+                                        Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_LONG).show();
+                                    }
+                                    else{
+                                        Category updateCat = new Category(cid.getText().toString(), etCat.getText().toString(), catType);
+                                        categoryController.updateCategory(catId, updateCat, new ICallback() {
+                                            @Override
+                                            public void onSuccess(Object result) {
+                                                popupWindow.dismiss();
+                                                catList(type);
+                                                Toast.makeText(getContext(), result.toString(), Toast.LENGTH_LONG).show();
+                                            }
 
-                                        @Override
-                                        public void onError(String error) {
-                                            Toast.makeText(getContext(), "Error updating category: " + error, Toast.LENGTH_LONG).show();
-                                        }
+                                            @Override
+                                            public void onError(String error) {
+                                                Toast.makeText(getContext(), "Error updating category: " + error, Toast.LENGTH_LONG).show();
+                                            }
 
-                                        @Override
-                                        public void onAuthFailure(String authFailure) {
-                                            Intent intent = new Intent(getContext(), AuthActivity.class);
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                            startActivity(intent);
-                                        }
-                                    });
+                                            @Override
+                                            public void onAuthFailure(String authFailure) {
+                                                Intent intent = new Intent(getContext(), AuthActivity.class);
+                                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                startActivity(intent);
+                                            }
+                                        });
+                                    }
                                 });
+                                //category cannot be deleted if transactions exist, user will be informed
                                 if (intPopupTransCount > 0 || popupUserId.equals("null")){
                                     btnDelete.setEnabled(false);
                                     Toast.makeText(getContext(), "Category cannot be deleted", Toast.LENGTH_LONG).show();
@@ -343,6 +365,7 @@ public class CategoryFragment extends Fragment {
                                 else{
                                     btnDelete.setEnabled(true);
                                     btnDelete.setOnClickListener(view1 -> {
+                                        //get user confirmation to delete the category
                                         new MaterialAlertDialogBuilder(getContext())
                                                 .setTitle("Delete")
                                                 .setMessage("Are you sure?")
@@ -395,9 +418,9 @@ public class CategoryFragment extends Fragment {
 
             @Override
             public void onAuthFailure(String message) {
-                Intent i = new Intent(getContext(), AuthActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(i);
+                Intent goToLoginPage = new Intent(getContext(), AuthActivity.class);
+                goToLoginPage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(goToLoginPage);
             }
         });
     }
@@ -409,24 +432,5 @@ public class CategoryFragment extends Fragment {
         p.flags |= WindowManager.LayoutParams.FLAG_DIM_BEHIND;
         p.dimAmount = 0.5f; // Adjust dim amount (0.0 - no dim, 1.0 - fully dimmed)
         wm.updateViewLayout(container, p);
-    }
-
-    private void getAllTransactionsByCatId(String id){
-        transactionController.getTransactionsByCatId(id, new ICallback() {
-            @Override
-            public void onSuccess(Object result) {
-
-            }
-
-            @Override
-            public void onError(String error) {
-
-            }
-
-            @Override
-            public void onAuthFailure(String message) {
-
-            }
-        });
     }
 }

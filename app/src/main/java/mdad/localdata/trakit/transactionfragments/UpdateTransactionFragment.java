@@ -129,16 +129,15 @@ public class UpdateTransactionFragment extends Fragment {
     Bitmap selectedImageBitmap = null;
     Boolean boolRecc;
     ImageButton btnRecurring;
-    int ivHeight, ivWidth, newHeight, newWidth, currentBitmapHeight, currentBitmapWidth;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
-    private Uri photoUri;
     public void onViewCreated(View view, Bundle savedInstanceState){
         categoryController = new CategoryController(getContext());
         transactionController = new TransactionController(getContext());
         sharedPreferences = requireContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
         token = sharedPreferences.getString("token", null);
 
+        //retrieve the bundle passed from the view transaction fragment
         Bundle retrieveInfo = getArguments();
         topAppBar = view.findViewById(R.id.topAppBar);
         dbType = retrieveInfo.getString("type");
@@ -150,7 +149,6 @@ public class UpdateTransactionFragment extends Fragment {
         base64Img = retrieveInfo.getString("base64Img");
         recurring = retrieveInfo.getString("recurring");
         boolRecc = Boolean.parseBoolean(recurring);
-        Log.d("Bundle Recurring", recurring);
 
         etUpdateDate = view.findViewById(R.id.etUpdateDate);
         etUpdateAmount = view.findViewById(R.id.etUpdateAmount);
@@ -167,9 +165,6 @@ public class UpdateTransactionFragment extends Fragment {
         if (boolRecc) {
             btnRecurring.setColorFilter(ContextCompat.getColor(getContext(), R.color.save));
         }
-//        else {
-//            btnRecurring.setColorFilter(ContextCompat.getColor(getContext(), R.color.recurring));
-//        }
 
         topAppBar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -191,7 +186,7 @@ public class UpdateTransactionFragment extends Fragment {
             }
         });
 
-        if (dbType.equals("EXPENSE"))
+        if (dbType.equalsIgnoreCase("expense"))
             radioGroup.check(R.id.expenseButton);
         else
             radioGroup.check(R.id.incomeButton);
@@ -231,6 +226,7 @@ public class UpdateTransactionFragment extends Fragment {
             String formattedDate = sdf.format(calendar.getTime());
             etUpdateDate.setText(formattedDate);  // Set the formatted date into EditText
         });
+        catDropdownValue.setText(catName);
 
         btnCancel.setOnClickListener(v -> {
             new MaterialAlertDialogBuilder(getContext())
@@ -275,7 +271,7 @@ public class UpdateTransactionFragment extends Fragment {
                 String newAmount = etUpdateAmount.getText().toString();
                 String newDesc = etUpdateDesc.getText().toString();
                 String newTransDate = etUpdateDate.getText().toString();
-                String dropdownValue = catDropdownValue.getText().toString();
+                String dropdownValue = catDropdownValue.getText().toString().toLowerCase();
                 newCatId = null; // Initialize to null by default
                 for (int i = 0; i < arrayList.size(); i++) {
                     String name = arrayList.get(i).get("name").toLowerCase(); // Get the name from the arrayList
@@ -290,18 +286,21 @@ public class UpdateTransactionFragment extends Fragment {
                 }
                 else{
                     Transaction updatedTransObject = new Transaction(id, Float.parseFloat(newAmount), newDesc, newTransDate, boolRecc, newCatId, updateBase64Img);
-//                    Log.d("Update Trans", String.valueOf(updatedTransObject.id));
-//                    Log.d("Update Trans", String.valueOf(updatedTransObject.amount));
-//                    Log.d("Update Trans", String.valueOf(updatedTransObject.description));
-//                    Log.d("Update Trans", String.valueOf(updatedTransObject.transDate));
-//                    Log.d("Update Trans", String.valueOf(updatedTransObject.recurring));
-//                    Log.d("Update Trans", String.valueOf(updatedTransObject.categoryId));
                     updateTransaction(updatedTransObject);
+//                    Log.d("update trans", "ID: " + updatedTransObject.getId());
+//                    Log.d("update trans", "Amount: " + updatedTransObject.getAmount());
+//                    Log.d("update trans", "Description: " + updatedTransObject.getDescription());
+//                    Log.d("update trans", "Transaction Date: " + updatedTransObject.getTransDate());
+//                    Log.d("update trans", "Recurring: " + updatedTransObject.isRecurring());
+//                    Log.d("update trans", "Category ID: " + updatedTransObject.getCategoryId());
+//                    Log.d("update trans", "Base64 Image: " + updatedTransObject.getBase64Img());
+
                 }
             }
         });
     }
 
+    //choose to take photo or pick from gallery
     private void showImageSourceDialog() {
         String[] options = {"Take Photo", "Choose from Gallery"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -324,8 +323,6 @@ public class UpdateTransactionFragment extends Fragment {
     private void takePhoto() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (intent.resolveActivity(getContext().getPackageManager()) != null) {
-//            File photoFile = new File(getContext().getExternalFilesDir(null), "photo.jpg");
-//            photoUri = Uri.fromFile(photoFile);
             File photoFile = null;
             try {
                 photoFile = createImageFile();
@@ -378,6 +375,7 @@ public class UpdateTransactionFragment extends Fragment {
         }
     }
 
+    //create the photo file
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -388,6 +386,7 @@ public class UpdateTransactionFragment extends Fragment {
         return image;
     }
 
+    //view the selected image
     private void showFullScreenDialog() {
         Dialog dialog = new Dialog(getContext());
 
@@ -415,6 +414,7 @@ public class UpdateTransactionFragment extends Fragment {
         dialog.show();
     }
 
+    //get all categories based on the type of transaction
     public void getCategoriesByType(String type){
         categoryController.getAllCategories(type, new ICallback() {
             @Override
@@ -461,6 +461,7 @@ public class UpdateTransactionFragment extends Fragment {
         });
     }
 
+    //function to update the transaction
     public void updateTransaction(Transaction updatedTransaction){
         transactionController.updateTransaction(updatedTransaction, new ICallback() {
             @Override
